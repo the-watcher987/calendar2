@@ -46,6 +46,11 @@ svg.i.sm{width:15px;height:15px}
 .nav-item:hover{background:var(--side-2);color:#fff}
 .nav-item.active{background:var(--side-2);color:#fff}
 .nav-item .chev{margin-left:auto;transition:transform .2s;opacity:.6}
+.nav-row{display:flex;align-items:center;gap:2px}
+.nav-row .nav-item{flex:1;min-width:0}
+.nav-chev{border:0;background:none;color:var(--side-muted);width:34px;height:34px;border-radius:9px;cursor:pointer;display:grid;place-items:center;flex:none}
+.nav-chev:hover{background:var(--side-2);color:#fff}
+.nav-chev .chev{transition:transform .2s}
 .nav-group.open .chev{transform:rotate(90deg)}
 .subnav{display:none;flex-direction:column;margin:2px 0 6px 20px;padding-left:12px;border-left:1px solid #1f2a40}
 .nav-group.open .subnav{display:flex}
@@ -1203,6 +1208,7 @@ function checkReminders() {
 async function fileLines(rec) {
   const blob = rec.blob || rec, name = rec.name || "", type = rec.type || blob.type || guessType(name);
   if (/pdf/.test(type) || /\.pdf$/i.test(name)) return (await pdfLines(new Uint8Array(await blob.arrayBuffer()))).map(l => l.text.replace(/\t/g, "   "));
+  if (/html/.test(type) || /\.html?$/i.test(name)) { const d = new DOMParser().parseFromString(await blob.text(), "text/html"); d.querySelectorAll("script,style,noscript").forEach(x => x.remove()); d.querySelectorAll("p,li,h1,h2,h3,h4,tr,div,br").forEach(x => x.append("\n")); const links = [...d.querySelectorAll("a[href^='http']")].map(a => a.href).slice(0, 3); return (d.body?.textContent || "").split(/\n+/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean).concat(links); }
   if (/text/.test(type) || /\.(txt|md|csv)$/i.test(name)) return (await blob.text()).split(/\r?\n/);
   throw new Error("Scanning works with PDF or text syllabi. For Word files, save as PDF first.");
 }
@@ -1309,6 +1315,99 @@ function applyScan() {
   save(); toast(`Added ${n} item${n === 1 ? "" : "s"} from the syllabus.`); openCourse(sid, cid, found.dates.length ? "dates" : "hours"); rerender();
 }
 
+/* ---------- Grad school smart reader ---------- */
+const NUMW = {one: 1, two: 2, three: 3, four: 4, five: 5};
+function parseAnyDate(str) {
+  let m = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?/i.exec(str);
+  let y, mo, d;
+  if (m) { mo = MONTHS[m[1].slice(0, 3).toLowerCase()]; d = +m[2]; y = m[3] ? +m[3] : null; }
+  else if ((m = /\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/.exec(str))) { mo = +m[1] - 1; d = +m[2]; y = +m[3] < 100 ? 2000 + +m[3] : +m[3]; }
+  else if ((m = /\b(\d{4})-(\d{2})-(\d{2})\b/.exec(str))) { y = +m[1]; mo = +m[2] - 1; d = +m[3]; }
+  else return null;
+  if (y == null) { const now = new Date(); y = now.getFullYear(); if (new Date(y, mo, d) < startOfDay(now)) y++; }
+  const dt = new Date(y, mo, d); return dt.getMonth() === mo ? ymd(dt) : null;
+}
+const REQ_PATTERNS = [
+  [/statement of purpose|\bSOP\b|academic statement/i, "Statement of purpose"], [/personal (history )?statement|diversity statement/i, "Personal history / diversity statement"],
+  [/research statement/i, "Research statement"], [/\bCV\b|curriculum vitae|r[ée]sum[ée]/i, "CV / resume"], [/transcript/i, "Transcripts"],
+  [/writing sample/i, "Writing sample"], [/interview/i, "Interview"], [/portfolio/i, "Portfolio"], [/video (essay|statement)/i, "Video statement"]
+];
+function extractGrad(lines) {
+  const text = lines.join("\n"), flat = lines.join(" "), out = {};
+  // deadline: prefer lines that mention deadline/due/apply by, PhD/fall over spring
+  const dl = lines.filter(l => /deadline|due|apply by|submit(ted)? by|priority/i.test(l)).map(l => ({l, d: parseAnyDate(l)})).filter(x => x.d);
+  const best = dl.find(x => /ph\.?d|doctoral|fall/i.test(x.l)) || dl[0]; if (best) out.deadline = best.d;
+  let m = /application fee[^$\n]{0,40}\$\s?(\d{2,3})/i.exec(flat) || /\$\s?(\d{2,3})(?:\.00)?[^.\n]{0,40}application fee/i.exec(flat) || /fee[^$\n]{0,20}\$\s?(\d{2,3})/i.exec(flat);
+  if (m) out.fee = "$" + m[1] + (/fee waiver|waive/i.test(flat) ? " (waivers available)" : ""); else if (/no application fee|fee is waived/i.test(flat)) out.fee = "No fee";
+  m = /GRE[^.\n]{0,90}?\b(not required|not accepted|not considered|will not be (?:considered|reviewed)|optional|recommended|required|waived)/i.exec(flat);
+  if (m) out.gre = /not|waived/i.test(m[1]) ? (/accepted|considered|reviewed/i.test(m[1]) ? "Not accepted" : "Not required") : m[1][0].toUpperCase() + m[1].slice(1).toLowerCase();
+  m = /(minimum|at least|min\.?|required)[^.\n]{0,50}?(?:GPA|grade point average)[^.\n]{0,30}?(\d\.\d{1,2})/i.exec(flat) || /(?:GPA|grade point average)[^.\n]{0,40}?(\d\.\d{1,2})/i.exec(flat);
+  if (m) { const v = m[2] || m[1]; out.minGpa = v + (m[2] ? " minimum" : ""); }
+  const toefl = /TOEFL[^.\n]{0,60}?\b(\d{2,3})\b/i.exec(flat), ielts = /IELTS[^.\n]{0,50}?\b(\d(?:\.\d)?)\b/i.exec(flat);
+  if (toefl || ielts) out.english = [toefl && "TOEFL " + toefl[1], ielts && "IELTS " + ielts[1]].filter(Boolean).join(" / ") + " (international applicants)";
+  m = /\b(https?:\/\/[^\s)>\]]+\.edu[^\s)>\]]*|https?:\/\/[^\s)>\]]+)/i.exec(text) || /\b(www\.[\w.-]+\.edu[^\s)]*)/i.exec(text);
+  if (m) out.website = (m[1].startsWith("http") ? m[1] : "https://" + m[1]).replace(/[.,;]+$/, "");
+  m = /\b((?:Ph\.?\s?D\.?|Doctor of Philosophy|M\.?S\.?|Master of Science)[^.\n]{0,25}(?:in|,|–|-)?[^.\n]{0,15}(?:Electrical|Computer|ECE|EECS|Engineering)[^.\n]{0,35})/i.exec(flat);
+  if (m) out.program = m[1].split(/\s[-–—|:]\s|https?:/)[0].replace(/\s{2,}/g, " ").trim().slice(0, 70);
+  const reqs = [];
+  m = /\b(one|two|three|four|five|\d)\s+(?:letters? of (?:recommendation|reference)|recommendation letters?|references)/i.exec(flat);
+  if (m) reqs.push(`${NUMW[m[1].toLowerCase()] || m[1]} letters of recommendation`);
+  for (const [re, label] of REQ_PATTERNS) if (re.test(flat)) reqs.push(label);
+  if (/GRE/i.test(flat) && out.gre && !/not/i.test(out.gre)) reqs.push("GRE scores");
+  out.requirements = [...new Set(reqs)];
+  const info = lines.filter(l => /fund|stipend|fellowship|assistantship|tuition|research area|\blabs?\b/i.test(l) && l.length > 25).slice(0, 4).map(l => l.trim());
+  if (info.length) out.info = info.join("\n");
+  const fac = [...new Set((flat.match(/\b(?:Prof(?:essor|\.)?|Dr\.)\s+[A-Z][a-z]+(?:\s+[A-Z]\.)?\s+[A-Z][a-zA-Z'-]+/g) || []))].slice(0, 6);
+  if (fac.length) out.faculty = fac.join("\n");
+  return out;
+}
+const GRAD_LABELS = {program: "Program", deadline: "Application deadline", fee: "Application fee", minGpa: "GPA expectation", gre: "GRE", english: "English test", website: "Program website", info: "School / program information", faculty: "Faculty mentioned"};
+let gradScan = null;
+async function scanGradFile(fileId, name) {
+  let g = curGrad(); let rec; try { rec = await Cloud.getFile(fileId); } catch (e) { return toast(e.message, "error"); }
+  if (!rec) return toast("That file isn't on this device.", "error");
+  if (/^image\//.test(rec.type || "")) return toast("Screenshots can't be read yet. Save the page as a PDF instead (⌘P → Save as PDF).", "error");
+  toast("Reading " + (name || "file") + "…");
+  let found, lines; try { lines = await fileLines(rec); found = extractGrad(lines); } catch (e) { return toast(e.message || "Couldn't read that file.", "error"); }
+  // Which of your schools is this file about? (e.g. you dropped a Purdue PDF while Berkeley was open)
+  const flat = lines.join(" ").toLowerCase(), STOP = new Set(["university", "of", "the", "at", "institute", "technology", "college", "state"]);
+  const score = x => x.name.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2 && !STOP.has(w)).filter(w => flat.includes(w)).length;
+  const hit = [...S.gradSchools].sort((a, b) => score(b) - score(a))[0], moved = hit && hit.id !== g.id && score(hit) > score(g);
+  if (moved) { const f = g.files.find(x => x.fileId === fileId); if (f) { g.files = g.files.filter(x => x !== f); hit.files.push(f); } g = hit; S.ui.gradSel = hit.id; save(); rerender(); }
+  gradScan = {gid: g.id, found};
+  const fields = Object.keys(GRAD_LABELS).filter(k => found[k] && found[k] !== g[k]);
+  const newReqs = (found.requirements || []).filter(r => !g.requirements.some(x => x.text.toLowerCase().includes(r.toLowerCase().split(" ")[0]) && x.text.toLowerCase().includes(r.toLowerCase().split(" ").slice(-1)[0])));
+  if (!fields.length && !newReqs.length) return modal("Nothing new found", `<p>FOCUS read <b>${esc(name)}</b> but didn't find anything that isn't already filled in for ${esc(g.name)}. Scanned PDFs (pictures of pages) can't be read.</p>`, `<button class="btn primary" data-act="close">OK</button>`);
+  const row = (k, html) => `<label class="row" style="gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" checked data-gscan="${esc(k)}" style="margin-top:3px"><div style="flex:1;min-width:0">${html}</div></label>`;
+  modal(`Found in ${esc(name)}`, `<p class="small muted" style="margin-bottom:8px">${moved ? `This file is about <b>${esc(g.name)}</b>, so it's been moved there. ` : `For <b>${esc(g.name)}</b>. `}Untick anything that's wrong; you can edit it all afterward.</p>
+    ${fields.map(k => row(k, `<div class="tiny muted">${GRAD_LABELS[k]}</div><div style="white-space:pre-wrap;font-weight:600">${esc(k === "deadline" ? fmtDate(parseYmd(found[k]), {month: "long", day: "numeric", year: "numeric"}) : found[k])}</div>${g[k] ? `<div class="tiny muted">replaces: ${esc(String(g[k]).slice(0, 60))}</div>` : ""}`)).join("")}
+    ${newReqs.length ? `<div class="day-h">Add to admission checklist</div>${newReqs.map((r, i) => row("req:" + i, esc(r))).join("")}` : ""}`,
+    `<button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="gScanApply">${ic("check")}Fill in selected</button>`);
+  gradScan.newReqs = newReqs;
+}
+function applyGradScan() {
+  const g = S.gradSchools.find(x => x.id === gradScan.gid); if (!g) return closeLayer();
+  let n = 0;
+  for (const el of $$("[data-gscan]")) { if (!el.checked) continue; const k = el.dataset.gscan;
+    if (k.startsWith("req:")) { g.requirements.push({id: uid(), text: gradScan.newReqs[+k.slice(4)], done: false}); n++; }
+    else { g[k] = gradScan.found[k]; n++; } }
+  save(); closeLayer(); rerender(); toast(`Filled in ${n} item${n === 1 ? "" : "s"} for ${g.name}.`);
+}
+/* ---------- photos: check they can be shown, shrink big ones ---------- */
+async function prepPhoto(file) {
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch {
+    if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name)) throw new Error("That's an iPhone HEIC photo, which Chrome can't open. Open it in Preview → File → Export → Format: JPEG, then upload the JPEG.");
+    throw new Error("This browser can't open that image. Try a JPG or PNG.");
+  }
+  const max = 2400, sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  if (sc === 1 && file.size < 3e6 && /jpe?g|png|webp/i.test(file.type)) return file;
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.86));
+  return new File([blob], (file.name || "background").replace(/\.\w+$/, "") + ".jpg", {type: "image/jpeg"});
+}
 /* =====================================================================
    NAV + ROUTER
    ===================================================================== */
@@ -1334,8 +1433,8 @@ function renderSide() {
   $("#side").innerHTML = `
     <div class="brand"><div class="logo">${ic("cap")}</div><div>FOCUS<small>${esc(S.profile.school)}</small></div></div>
     <nav class="nav">${NAV.map(n => n.subs ? `
-      <div class="nav-group ${openGroups.has(n.id) || r.main === n.id ? "open" : ""}">
-        <button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navGroup" data-id="${n.id}">${navIcon(n)}<span>${n.label}</span>${ic("chev", "sm chev")}</button>
+      <div class="nav-group ${openGroups.has(n.id) ? "open" : ""}">
+        <div class="nav-row"><button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navGroup" data-id="${n.id}">${navIcon(n)}<span>${n.label}</span></button><button class="nav-chev" data-act="navToggle" data-id="${n.id}" aria-label="${openGroups.has(n.id) ? "Collapse" : "Expand"} ${n.label}" title="${openGroups.has(n.id) ? "Collapse" : "Expand"}">${ic("chev", "sm chev")}</button></div>
         <div class="subnav">${n.subs.map(s => `<button class="sub-item ${r.main === n.id && r.sub === s[0] ? "active" : ""}" data-act="nav" data-main="${n.id}" data-sub="${s[0]}">${s[1]}</button>`).join("")}</div>
       </div>` : `<button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="nav" data-main="${n.id}">${navIcon(n)}<span>${n.label}</span></button>`).join("")}
     </nav>
@@ -1359,7 +1458,7 @@ function render() {
   if (render._same) window.scrollTo(0, sc);
   document.body.classList.remove("nav-open");
 }
-window.addEventListener("hashchange", () => { render._same = false; render(); window.scrollTo(0, 0); });
+window.addEventListener("hashchange", () => { const m = route().main; if (NAV.find(n => n.id === m)?.subs && !openGroups.has(m)) { openGroups.add(m); LS.set("focus.navOpen", [...openGroups]); } render._same = false; render(); window.scrollTo(0, 0); });
 function focusKey(el) { if (!el || el === document.body || !el.dataset) return null; return ["act", "id", "f", "k", "oh", "kd", "sem", "d"].map(k => el.dataset[k] || "").join("|") + "|" + el.tagName; }
 /* Deferred so focus can move to the next field before the page redraws; focus is then restored. */
 const rerender = () => { clearTimeout(rerender.t); rerender.t = setTimeout(() => {
@@ -1870,8 +1969,9 @@ VIEWS["career/grad"] = () => {
       ${g.requirements.map(r => `<div class="req ${r.done ? "done" : ""}"><input type="checkbox" ${r.done ? "checked" : ""} data-act="reqDone" data-id="${r.id}"><input class="cell" value="${esc(r.text)}" data-act="reqText" data-id="${r.id}"><button class="icon-btn" data-act="reqDel" data-id="${r.id}">${ic("x", "sm")}</button></div>`).join("")}
       <div class="divider"></div>
       <label class="f"><span>Notes</span><textarea class="input" rows="3" data-act="gField" data-k="notes" placeholder="Anything else…">${esc(g.notes)}</textarea></label>
-      <div class="card-h" style="margin:14px 0 6px"><h2>Files</h2><div class="sp"></div><button class="btn sm" data-act="gFile">${ic("upload", "sm")}Attach file</button></div>
-      ${g.files.length ? g.files.map(f => `<div class="row small" style="padding:5px 0"><span style="flex:1">${ic("file", "sm")} ${esc(f.name)}</span><button class="btn sm ghost" data-act="viewFile" data-fid="${f.fileId}" data-name="${esc(f.name)}">${ic("eye", "sm")}View</button><button class="icon-btn" data-act="gFileDel" data-fid="${f.fileId}">${ic("x", "sm")}</button></div>`).join("") : `<div class="tiny muted">Attach brochures, requirement pages, or your SOP draft for this school.</div>`}
+      <div class="card-h" style="margin:14px 0 6px"><h2>Files & smart reader</h2><div class="sp"></div><button class="btn sm" data-act="gFile">${ic("upload", "sm")}Attach file</button></div>
+      <div class="drop" data-act="gFile" data-drop="grad" style="margin-bottom:10px">${ic("spark")}<div style="font-weight:650">Drop a program page, brochure or requirements PDF</div><div class="tiny">FOCUS reads it and fills in the deadline, fee, GRE, GPA, English test, website and checklist above. You confirm before anything changes. Tip: on a program's website press ⌘P → <b>Save as PDF</b>.</div></div>
+      ${g.files.map(f => `<div class="row small" style="padding:5px 0;flex-wrap:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ic("file", "sm")} ${esc(f.name)}</span><button class="btn sm" data-act="gScan" data-fid="${f.fileId}" data-name="${esc(f.name)}">${ic("spark", "sm")}Read again</button><button class="btn sm ghost" data-act="viewFile" data-fid="${f.fileId}" data-name="${esc(f.name)}">${ic("eye", "sm")}View</button><button class="icon-btn" data-act="gFileDel" data-fid="${f.fileId}">${ic("x", "sm")}</button></div>`).join("")}
     </div>` : ""}</div>`;
 };
 
@@ -2084,12 +2184,17 @@ $("#filePick").addEventListener("change", e => { const file = e.target.files[0];
 const DROP = {
   ics: file => handleIcsFile(file),
   resume: file => handleResume(dropCtx.id, file),
-  syllabus: file => handleSyllabus(file)
+  syllabus: file => handleSyllabus(file),
+  grad: file => attachGradFile(file)
 };
 let dropCtx = {};
 document.addEventListener("dragover", e => { const d = e.target.closest?.("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });
 document.addEventListener("dragleave", e => { const d = e.target.closest?.("[data-drop]"); if (d) d.classList.remove("over"); });
 document.addEventListener("drop", e => { const d = e.target.closest?.("[data-drop]"); if (!d) return; e.preventDefault(); d.classList.remove("over"); const f = e.dataTransfer.files[0]; if (!f) return; dropCtx = {id: d.dataset.id}; DROP[d.dataset.drop]?.(f); });
+async function attachGradFile(f) {
+  const g = curGrad(); const fileId = await saveFile(f); g.files.push({fileId, name: f.name}); save(); rerender();
+  if (/pdf|text|html/.test(f.type) || /\.(pdf|txt|html?|md)$/i.test(f.name)) setTimeout(() => scanGradFile(fileId, f.name), 50); else toast("File attached.");
+}
 async function handleIcsFile(file) { try { const n = loadIcsText(await file.text(), "file", file.name.replace(/\.ics$/i, "")); S.ics.error = ""; save(); toast(`Imported ${n} events from ${file.name}.`); rerender(); } catch (e) { toast(e.message || "Couldn't read that file.", "error"); } }
 async function handleResume(slotId, file) {
   const slot = S.resumes.find(r => r.id === slotId) || S.resumes[0];
@@ -2122,7 +2227,7 @@ const CLICK = {
     const c = !document.body.classList.contains("side-collapsed"); LS.set("focus.sideCollapsed", c); document.body.classList.toggle("side-collapsed", c); document.body.classList.remove("nav-open"); },
   closeNav: () => document.body.classList.remove("nav-open"),
   nav: a => go(a.dataset.main, a.dataset.sub),
-  navGroup: a => { const id = a.dataset.id, r = route(); if (r.main !== id) { openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); return go(id, NAV.find(n => n.id === id).subs[0][0]); } openGroups.has(id) ? openGroups.delete(id) : openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); renderSide(); },
+  navGroup: a => { const id = a.dataset.id; openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); if (route().main !== id) go(id, NAV.find(n => n.id === id).subs[0][0]); else renderSide(); },
   close: () => closeLayer(),
   overlay: (a, e) => { if (e.target === a) closeLayer(); },
   /* plan */
@@ -2145,7 +2250,9 @@ const CLICK = {
   noteColor: a => { S.ui.noteColor = a.dataset.c; $$(".note-compose .color-dots button").forEach(b => b.classList.toggle("on", b === a)); save({silent: true}); },
   notePin: a => { const n = S.notes.find(x => x.id === a.dataset.id); n.pinned = !n.pinned; save(); rerender(); },
   noteRecolor: a => { S.notes.find(x => x.id === a.dataset.id).color = a.dataset.c; save(); rerender(); },
-  heroPhoto: () => pick("image/*", async f => { if (!/^image\//.test(f.type)) return toast("Pick an image file.", "error"); if (f.size > 15e6) return toast("That photo is over 15 MB. Pick a smaller one.", "error"); const old = S.profile.heroImage; S.profile.heroImage = await saveFile(f); if (old) delFile(old); save(); toast("Background updated."); rerender(); }),
+  heroPhoto: () => pick("image/*,.heic,.heif", async f => {
+    try { toast("Setting your photo…"); const img = await prepPhoto(f); const old = S.profile.heroImage; S.profile.heroImage = await saveFile(img); if (old && old !== S.profile.heroImage) delFile(old); heroUrlFor = null; save(); toast("Background updated."); rerender(); }
+    catch (e) { console.error(e); toast(e.message || "Couldn't use that photo.", "error"); } }),
   heroPhotoDel: () => { if (S.profile.heroImage) delFile(S.profile.heroImage); S.profile.heroImage = ""; save(); rerender(); },
   heroEdit: () => heroEditModal(),
   heroSave: () => { S.profile.gradDate = $("#hgDate").value; S.profile.gradTime = $("#hgTime").value || "10:00"; S.profile.startDate = $("#hgStart").value || "2025-08-25"; save(); closeLayer(); rerender(); },
@@ -2214,7 +2321,10 @@ const CLICK = {
   gDel: a => { const g = S.gradSchools.find(x => x.id === a.dataset.id); if (!confirm(`Delete ${g.name}?`)) return; g.files.forEach(f => delFile(f.fileId)); S.gradSchools = S.gradSchools.filter(x => x !== g); S.ui.gradSel = null; save(); rerender(); },
   reqAdd: () => { curGrad().requirements.push({id: uid(), text: "", done: false}); save(); rerender(); setTimeout(() => $$('[data-act="reqText"]').pop()?.focus(), 30); },
   reqDel: a => { const g = curGrad(); g.requirements = g.requirements.filter(r => r.id !== a.dataset.id); save(); rerender(); },
-  gFile: () => pick("*/*", async f => { const g = curGrad(); g.files.push({fileId: await saveFile(f), name: f.name}); save(); rerender(); toast("File attached."); }),
+  gFile: () => pick(".pdf,.txt,.html,.htm,.md,image/*,application/pdf", f => attachGradFile(f)),
+  gScan: a => scanGradFile(a.dataset.fid, a.dataset.name),
+  gScanApply: () => applyGradScan(),
+  navToggle: (a, e) => { e.stopPropagation(); const id = a.dataset.id; openGroups.has(id) ? openGroups.delete(id) : openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); renderSide(); },
   gFileDel: a => { const g = curGrad(); delFile(a.dataset.fid); g.files = g.files.filter(f => f.fileId !== a.dataset.fid); save(); rerender(); },
   gExport: () => download("grad-schools.json", JSON.stringify(S.gradSchools.map(({files, id, ...g}) => g), null, 2)),
   gImport: () => pick(".json,.csv,text/csv,application/json", async f => {
