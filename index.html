@@ -52,8 +52,11 @@ svg.i.sm{width:15px;height:15px}
 .nav-chev:hover{background:var(--side-2);color:#fff}
 .nav-chev .chev{transition:transform .2s}
 .nav-group.open .chev{transform:rotate(90deg)}
-.subnav{display:none;flex-direction:column;margin:2px 0 6px 20px;padding-left:12px;border-left:1px solid #1f2a40}
-.nav-group.open .subnav{display:flex}
+.subwrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1),opacity .25s;opacity:0}
+.nav-group.open .subwrap{grid-template-rows:1fr;opacity:1}
+.subwrap > .subnav{overflow:hidden;min-height:0}
+.subnav{display:flex;flex-direction:column;margin:0 0 0 20px;padding-left:12px;border-left:1px solid #1f2a40}
+.nav-group.open .subnav{margin:2px 0 6px 20px}
 .sub-item{border:0;background:none;color:var(--side-muted);text-align:left;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px}
 .sub-item:hover{color:#fff}
 .sub-item.active{color:#fff;background:color-mix(in srgb,var(--accent) 28%,transparent)}
@@ -1205,12 +1208,46 @@ function checkReminders() {
 /* =====================================================================
    Syllabus scanner: finds instructor, email, office hours and dated items
    ===================================================================== */
+/* Reads text out of PDFs, Word files, web pages, text files, and (with OCR) screenshots, photos and scanned PDFs */
+const TESS_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+const MAMMOTH_URL = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
+const libP = {};
+function loadScript(url, global) {
+  return libP[url] ??= new Promise((res, rej) => {
+    if (window[global]) return res(window[global]);
+    const sc = document.createElement("script"); sc.src = url; sc.async = true;
+    sc.onload = () => window[global] ? res(window[global]) : rej(new Error("A reader component didn't load."));
+    sc.onerror = () => { delete libP[url]; rej(new Error("Couldn't download the reader. Check your internet connection and try again.")); };
+    document.head.appendChild(sc);
+  });
+}
+async function ocr(images) {
+  const T = await loadScript(TESS_URL, "Tesseract");
+  toast("Reading the text in your image… (first time takes ~20 seconds)");
+  const worker = await T.createWorker("eng"); const out = [];
+  try { for (const img of images) { const {data} = await worker.recognize(img); out.push(...(data.text || "").split(/\n/)); } }
+  finally { await worker.terminate(); }
+  return out.map(x => x.trim()).filter(Boolean);
+}
 async function fileLines(rec) {
   const blob = rec.blob || rec, name = rec.name || "", type = rec.type || blob.type || guessType(name);
-  if (/pdf/.test(type) || /\.pdf$/i.test(name)) return (await pdfLines(new Uint8Array(await blob.arrayBuffer()))).map(l => l.text.replace(/\t/g, "   "));
+  if (/pdf/.test(type) || /\.pdf$/i.test(name)) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const lines = (await pdfLines(bytes.slice())).map(l => l.text.replace(/\t/g, "   "));
+    if (lines.join("").replace(/\s/g, "").length > 60) return lines;
+    // scanned PDF: render pages and OCR them
+    const pdfjs = await loadPdfjs(), doc = await pdfjs.getDocument({data: bytes}).promise, imgs = [];
+    for (let i = 1; i <= Math.min(doc.numPages, 6); i++) { const pg = await doc.getPage(i), vp = pg.getViewport({scale: 2}); const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height; await pg.render({canvasContext: c.getContext("2d"), viewport: vp}).promise; imgs.push(c); }
+    return ocr(imgs);
+  }
+  if (/wordprocessingml|msword/.test(type) || /\.docx$/i.test(name)) { const m = await loadScript(MAMMOTH_URL, "mammoth"); const r = await m.extractRawText({arrayBuffer: await blob.arrayBuffer()}); return r.value.split(/\n+/).map(x => x.trim()).filter(Boolean); }
+  if (/^image\//.test(type) || /\.(png|jpe?g|webp|heic|heif|gif|bmp)$/i.test(name)) {
+    let img = blob; try { await createImageBitmap(blob); } catch { img = await prepPhoto(new File([blob], name || "image", {type})); }
+    return ocr([img]);
+  }
   if (/html/.test(type) || /\.html?$/i.test(name)) { const d = new DOMParser().parseFromString(await blob.text(), "text/html"); d.querySelectorAll("script,style,noscript").forEach(x => x.remove()); d.querySelectorAll("p,li,h1,h2,h3,h4,tr,div,br").forEach(x => x.append("\n")); const links = [...d.querySelectorAll("a[href^='http']")].map(a => a.href).slice(0, 3); return (d.body?.textContent || "").split(/\n+/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean).concat(links); }
   if (/text/.test(type) || /\.(txt|md|csv)$/i.test(name)) return (await blob.text()).split(/\r?\n/);
-  throw new Error("Scanning works with PDF or text syllabi. For Word files, save as PDF first.");
+  throw new Error("FOCUS can read PDFs, Word (.docx), web pages, text files and images. This file type isn't supported.");
 }
 const DAY_WORDS = [["Sun", 0, "(?:day)?s?"], ["Mon", 1, "(?:day)?s?"], ["Tue", 2, "(?:s(?:day)?)?s?"], ["Tu", 2, ""], ["Wed", 3, "(?:nesday)?s?"], ["Thu", 4, "(?:r(?:s(?:day)?)?)?s?"], ["Th", 4, ""], ["Fri", 5, "(?:day)?s?"], ["Sat", 6, "(?:urday)?s?"]];
 const DAY_RE_SRC = DAY_WORDS.map(([w, , tail]) => `[${w[0]}${w[0].toLowerCase()}]${w.slice(1)}${tail}`).join("|") + "|(?:M|T|W|R|F|Th|Tu){2,5}|[MTWRF]";
@@ -1293,7 +1330,7 @@ async function scanSyllabus() {
   let found; try { found = extractSyllabus(await fileLines(rec), s.name); } catch (e) { return toast(e.message || "Couldn't read that file.", "error"); }
   scanState = {found, sid: s.id, cid: c.id};
   const n = found.officeHours.length + found.dates.length + (found.instructor ? 1 : 0) + (found.email ? 1 : 0);
-  if (!n) return modal("Nothing found", `<p>FOCUS couldn't find office hours or dated items in this syllabus. Scanned PDFs (photos of pages) can't be read; add them by hand in the Office hours and Dates tabs.</p>`, `<button class="btn primary" data-act="backToCourse">OK</button>`);
+  if (!n) return modal("Nothing found", `<p>FOCUS couldn't find office hours or dated items in this syllabus. Add them by hand in the Office hours and Dates tabs.</p>`, `<button class="btn primary" data-act="backToCourse">OK</button>`);
   const row = (k, i, html) => `<label class="row" style="gap:10px;padding:8px 0;border-top:1px solid var(--line);flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" checked data-scan="${k}" data-i="${i}" style="margin-top:3px"><div style="flex:1">${html}</div></label>`;
   modal(`Found in the ${esc(c.code)} syllabus`, `<p class="small muted" style="margin-bottom:10px">Untick anything that's wrong. You can edit everything afterward.</p>
     ${found.instructor || found.email ? `<div class="day-h">Instructor</div>${found.instructor ? row("instructor", 0, esc(found.instructor)) : ""}${found.email ? row("email", 0, esc(found.email)) : ""}${found.room ? row("room", 0, "Class: " + esc(found.room)) : ""}` : ""}
@@ -1366,9 +1403,8 @@ let gradScan = null;
 async function scanGradFile(fileId, name) {
   let g = curGrad(); let rec; try { rec = await Cloud.getFile(fileId); } catch (e) { return toast(e.message, "error"); }
   if (!rec) return toast("That file isn't on this device.", "error");
-  if (/^image\//.test(rec.type || "")) return toast("Screenshots can't be read yet. Save the page as a PDF instead (⌘P → Save as PDF).", "error");
   toast("Reading " + (name || "file") + "…");
-  let found, lines; try { lines = await fileLines(rec); found = extractGrad(lines); } catch (e) { return toast(e.message || "Couldn't read that file.", "error"); }
+  let found, lines; try { lines = await fileLines(rec); found = extractGrad(lines); } catch (e) { console.error(e); return modal("Couldn't read that file", `<p>${esc(e.message || "Something went wrong reading " + name + ".")}</p>`, `<button class="btn primary" data-act="close">OK</button>`); }
   // Which of your schools is this file about? (e.g. you dropped a Purdue PDF while Berkeley was open)
   const flat = lines.join(" ").toLowerCase(), STOP = new Set(["university", "of", "the", "at", "institute", "technology", "college", "state"]);
   const score = x => x.name.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2 && !STOP.has(w)).filter(w => flat.includes(w)).length;
@@ -1377,7 +1413,7 @@ async function scanGradFile(fileId, name) {
   gradScan = {gid: g.id, found};
   const fields = Object.keys(GRAD_LABELS).filter(k => found[k] && found[k] !== g[k]);
   const newReqs = (found.requirements || []).filter(r => !g.requirements.some(x => x.text.toLowerCase().includes(r.toLowerCase().split(" ")[0]) && x.text.toLowerCase().includes(r.toLowerCase().split(" ").slice(-1)[0])));
-  if (!fields.length && !newReqs.length) return modal("Nothing new found", `<p>FOCUS read <b>${esc(name)}</b> but didn't find anything that isn't already filled in for ${esc(g.name)}. Scanned PDFs (pictures of pages) can't be read.</p>`, `<button class="btn primary" data-act="close">OK</button>`);
+  if (!fields.length && !newReqs.length) return modal("Nothing new found", `<p>FOCUS read <b>${esc(name)}</b> but didn't find anything that isn't already filled in for ${esc(g.name)}.</p>`, `<button class="btn primary" data-act="close">OK</button>`);
   const row = (k, html) => `<label class="row" style="gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" checked data-gscan="${esc(k)}" style="margin-top:3px"><div style="flex:1;min-width:0">${html}</div></label>`;
   modal(`Found in ${esc(name)}`, `<p class="small muted" style="margin-bottom:8px">${moved ? `This file is about <b>${esc(g.name)}</b>, so it's been moved there. ` : `For <b>${esc(g.name)}</b>. `}Untick anything that's wrong; you can edit it all afterward.</p>
     ${fields.map(k => row(k, `<div class="tiny muted">${GRAD_LABELS[k]}</div><div style="white-space:pre-wrap;font-weight:600">${esc(k === "deadline" ? fmtDate(parseYmd(found[k]), {month: "long", day: "numeric", year: "numeric"}) : found[k])}</div>${g[k] ? `<div class="tiny muted">replaces: ${esc(String(g[k]).slice(0, 60))}</div>` : ""}`)).join("")}
@@ -1455,8 +1491,8 @@ function renderSide() {
     <div class="brand"><div class="logo">${ic("cap")}</div><div>FOCUS<small>${esc(S.profile.school)}</small></div></div>
     <nav class="nav">${NAV.map(n => n.subs ? `
       <div class="nav-group ${openGroups.has(n.id) ? "open" : ""}">
-        <div class="nav-row"><button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navGroup" data-id="${n.id}">${navIcon(n)}<span>${n.label}</span></button><button class="nav-chev" data-act="navToggle" data-id="${n.id}" aria-label="${openGroups.has(n.id) ? "Collapse" : "Expand"} ${n.label}" title="${openGroups.has(n.id) ? "Collapse" : "Expand"}">${ic("chev", "sm chev")}</button></div>
-        <div class="subnav">${n.subs.map(s => `<button class="sub-item ${r.main === n.id && r.sub === s[0] ? "active" : ""}" data-act="nav" data-main="${n.id}" data-sub="${s[0]}">${s[1]}</button>`).join("")}</div>
+        <button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navToggle" data-id="${n.id}" aria-expanded="${openGroups.has(n.id)}">${navIcon(n)}<span>${n.label}</span>${ic("chev", "sm chev")}</button>
+        <div class="subwrap"><div class="subnav">${n.subs.map(s => `<button class="sub-item ${r.main === n.id && r.sub === s[0] ? "active" : ""}" data-act="nav" data-main="${n.id}" data-sub="${s[0]}">${s[1]}</button>`).join("")}</div></div>
       </div>` : `<button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="nav" data-main="${n.id}">${navIcon(n)}<span>${n.label}</span></button>`).join("")}
     </nav>
     <div class="side-foot">${esc(S.profile.fullName || S.profile.name)}<br>${esc(S.profile.major)}</div>`;
@@ -1991,7 +2027,7 @@ VIEWS["career/grad"] = () => {
       <div class="divider"></div>
       <label class="f"><span>Notes</span><textarea class="input" rows="3" data-act="gField" data-k="notes" placeholder="Anything else…">${esc(g.notes)}</textarea></label>
       <div class="card-h" style="margin:14px 0 6px"><h2>Files & smart reader</h2><div class="sp"></div><button class="btn sm" data-act="gFile">${ic("upload", "sm")}Attach file</button></div>
-      <div class="drop" data-act="gFile" data-drop="grad" style="margin-bottom:10px">${ic("spark")}<div style="font-weight:650">Drop a program page, brochure or requirements PDF</div><div class="tiny">FOCUS reads it and fills in the deadline, fee, GRE, GPA, English test, website and checklist above. You confirm before anything changes. Tip: on a program's website press ⌘P → <b>Save as PDF</b>.</div></div>
+      <div class="drop" data-act="gFile" data-drop="grad" style="margin-bottom:10px">${ic("spark")}<div style="font-weight:650">Drop a program page, brochure or requirements PDF</div><div class="tiny">PDF, Word, web page, or even a screenshot. FOCUS reads it and fills in the deadline, fee, GRE, GPA, English test, website and checklist above. You confirm before anything changes.</div></div>
       ${g.files.map(f => `<div class="row small" style="padding:5px 0;flex-wrap:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ic("file", "sm")} ${esc(f.name)}</span><button class="btn sm" data-act="gScan" data-fid="${f.fileId}" data-name="${esc(f.name)}">${ic("spark", "sm")}Read again</button><button class="btn sm ghost" data-act="viewFile" data-fid="${f.fileId}" data-name="${esc(f.name)}">${ic("eye", "sm")}View</button><button class="icon-btn" data-act="gFileDel" data-fid="${f.fileId}">${ic("x", "sm")}</button></div>`).join("")}
     </div>` : ""}</div>`;
 };
@@ -2213,8 +2249,9 @@ document.addEventListener("dragover", e => { const d = e.target.closest?.("[data
 document.addEventListener("dragleave", e => { const d = e.target.closest?.("[data-drop]"); if (d) d.classList.remove("over"); });
 document.addEventListener("drop", e => { const d = e.target.closest?.("[data-drop]"); if (!d) return; e.preventDefault(); d.classList.remove("over"); const f = e.dataTransfer.files[0]; if (!f) return; dropCtx = {id: d.dataset.id}; DROP[d.dataset.drop]?.(f); });
 async function attachGradFile(f) {
-  const g = curGrad(); const fileId = await saveFile(f); g.files.push({fileId, name: f.name}); save(); rerender();
-  if (/pdf|text|html/.test(f.type) || /\.(pdf|txt|html?|md)$/i.test(f.name)) setTimeout(() => scanGradFile(fileId, f.name), 50); else toast("File attached.");
+  try { const g = curGrad(); const fileId = await saveFile(f); g.files.push({fileId, name: f.name}); save(); rerender(); toast("Attached " + f.name + ". Reading it…");
+    setTimeout(() => scanGradFile(fileId, f.name), 60); }
+  catch (e) { console.error(e); toast("Couldn't attach that file: " + (e.message || e), "error"); }
 }
 async function handleIcsFile(file) { try { const n = loadIcsText(await file.text(), "file", file.name.replace(/\.ics$/i, "")); S.ics.error = ""; save(); toast(`Imported ${n} events from ${file.name}.`); rerender(); } catch (e) { toast(e.message || "Couldn't read that file.", "error"); } }
 async function handleResume(slotId, file) {
@@ -2232,7 +2269,7 @@ async function handleSyllabus(file) {
   if (!drawerState) return; const [, c] = findCourse(drawerState.sid, drawerState.cid);
   if (c.syllabus) delFile(c.syllabus.fileId);
   c.syllabus = {fileId: await saveFile(file), name: file.name, size: file.size, uploaded: Date.now()}; save(); toast("Syllabus uploaded."); openCourse(drawerState.sid, drawerState.cid, "syllabus"); rerender();
-  if (/pdf|text/.test(file.type) || /\.(pdf|txt)$/i.test(file.name)) scanSyllabus();
+  scanSyllabus();
 }
 function download(name, text, type = "application/json") { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 function parseCSV(t) { const rows = []; let row = [], f = "", q = false; for (let i = 0; i < t.length; i++) { const ch = t[i]; if (q) { if (ch === '"' && t[i + 1] === '"') { f += '"'; i++; } else if (ch === '"') q = false; else f += ch; } else if (ch === '"') q = true; else if (ch === ",") { row.push(f); f = ""; } else if (ch === "\n" || ch === "\r") { if (ch === "\r" && t[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; } else f += ch; } if (f || row.length) { row.push(f); rows.push(row); } return rows.filter(r => r.some(x => x.trim())); }
@@ -2272,7 +2309,9 @@ const CLICK = {
   notePin: a => { const n = S.notes.find(x => x.id === a.dataset.id); n.pinned = !n.pinned; save(); rerender(); },
   noteRecolor: a => { S.notes.find(x => x.id === a.dataset.id).color = a.dataset.c; save(); rerender(); },
   heroPhoto: () => pick("image/*,.heic,.heif", async f => {
-    try { toast("Setting your photo…"); const img = await prepPhoto(f); const old = S.profile.heroImage; S.profile.heroImage = await saveFile(img); if (old && old !== S.profile.heroImage) delFile(old); heroUrlFor = null; save(); toast("Background updated."); rerender(); }
+    try { toast("Setting your photo…"); const img = await prepPhoto(f); const old = S.profile.heroImage; const id = await saveFile(img);
+      if (heroUrl) URL.revokeObjectURL(heroUrl); heroUrl = URL.createObjectURL(img); heroUrlFor = id;
+      S.profile.heroImage = id; if (old && old !== id) delFile(old); save(); toast("Background updated."); rerender(); }
     catch (e) { console.error(e); toast(e.message || "Couldn't use that photo.", "error"); } }),
   heroPhotoDel: () => { if (S.profile.heroImage) delFile(S.profile.heroImage); S.profile.heroImage = ""; save(); rerender(); },
   heroEdit: () => heroEditModal(),
@@ -2342,10 +2381,11 @@ const CLICK = {
   gDel: a => { const g = S.gradSchools.find(x => x.id === a.dataset.id); if (!confirm(`Delete ${g.name}?`)) return; g.files.forEach(f => delFile(f.fileId)); S.gradSchools = S.gradSchools.filter(x => x !== g); S.ui.gradSel = null; save(); rerender(); },
   reqAdd: () => { curGrad().requirements.push({id: uid(), text: "", done: false}); save(); rerender(); setTimeout(() => $$('[data-act="reqText"]').pop()?.focus(), 30); },
   reqDel: a => { const g = curGrad(); g.requirements = g.requirements.filter(r => r.id !== a.dataset.id); save(); rerender(); },
-  gFile: () => pick(".pdf,.txt,.html,.htm,.md,image/*,application/pdf", f => attachGradFile(f)),
+  gFile: () => pick(".pdf,.docx,.txt,.html,.htm,.md,image/*,.heic,application/pdf", f => attachGradFile(f)),
   gScan: a => scanGradFile(a.dataset.fid, a.dataset.name),
   gScanApply: () => applyGradScan(),
-  navToggle: (a, e) => { e.stopPropagation(); const id = a.dataset.id; openGroups.has(id) ? openGroups.delete(id) : openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); renderSide(); },
+  navToggle: (a, e) => { e.stopPropagation(); const id = a.dataset.id, grp = a.closest(".nav-group"), open = !openGroups.has(id);
+    open ? openGroups.add(id) : openGroups.delete(id); LS.set("focus.navOpen", [...openGroups]); grp.classList.toggle("open", open); a.setAttribute("aria-expanded", open); },
   gFileDel: a => { const g = curGrad(); delFile(a.dataset.fid); g.files = g.files.filter(f => f.fileId !== a.dataset.fid); save(); rerender(); },
   gExport: () => download("grad-schools.json", JSON.stringify(S.gradSchools.map(({files, id, ...g}) => g), null, 2)),
   gImport: () => pick(".json,.csv,text/csv,application/json", async f => {
@@ -2429,6 +2469,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeLayer()
 
 /* ---------------- boot ---------------- */
 let deferredInstall = null;
+/* Keep every open FOCUS tab on the same data: when another tab saves, load its copy instead of overwriting it later */
+window.addEventListener("storage", e => {
+  if (e.key !== STORE_KEY || !e.newValue) return;
+  try { const ui = S.ui; S = migrate(JSON.parse(e.newValue)); S.ui = ui; applyTheme(); if (!$("#layer").children.length) rerender(); } catch {}
+});
+function refreshFromStorage() { try { const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if (saved && (saved.updatedAt || 0) > (S.updatedAt || 0)) { const ui = S.ui; S = migrate(saved); S.ui = ui; applyTheme(); rerender(); } } catch {} }
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; if (route().sub === "reminders") rerender(); });
 S = (() => { const saved = LS.get(STORE_KEY, null); return saved ? migrate(saved) : seedState(); })();
 LS.set(STORE_KEY, S);
@@ -2440,7 +2486,7 @@ if (icsUrl() && S.settings.autoSync && (!S.ics.lastSync || Date.now() - S.ics.la
 if (Cloud.signedIn) Cloud.afterSignIn();
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
 checkReminders(); setInterval(checkReminders, 15 * 60 * 1000);
-document.addEventListener("visibilitychange", () => { if (document.visibilityState !== "visible") return; checkReminders();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState !== "visible") return; refreshFromStorage(); checkReminders();
   if (Cloud.signedIn && S.settings.cloudSync) Cloud.pull().then(rerender).catch(() => {}); });
 window.FOCUS = {parseICS, expandRule, parseResumeLines, pdfLines, totals, extractSyllabus, planWarnings, Cloud, migrate, get state() { return S; }};
 </script>
