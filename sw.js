@@ -1,6 +1,6 @@
 /* FOCUS service worker: works offline and shows reminder notifications.
    Bump VERSION when you upload a new index.html so phones pick it up. */
-const VERSION = "focus-v6";
+const VERSION = "focus-v7";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 const CDN = ["https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs", "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs"];
 
