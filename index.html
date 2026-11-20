@@ -1394,15 +1394,36 @@ function applyGradScan() {
   save(); closeLayer(); rerender(); toast(`Filled in ${n} item${n === 1 ? "" : "s"} for ${g.name}.`);
 }
 /* ---------- photos: check they can be shown, shrink big ones ---------- */
+const HEIC_LIB = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+let heicP = null;
+function loadHeic() {
+  return heicP ??= new Promise((res, rej) => {
+    if (window.heic2any) return res(window.heic2any);
+    const sc = document.createElement("script"); sc.src = HEIC_LIB; sc.async = true;
+    sc.onload = () => window.heic2any ? res(window.heic2any) : rej(new Error("Converter didn't load."));
+    sc.onerror = () => { heicP = null; rej(new Error("Couldn't load the photo converter. Check your internet connection and try again.")); };
+    document.head.appendChild(sc);
+  });
+}
+async function isHeic(file) {
+  if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name)) return true;
+  const head = new TextDecoder().decode(await file.slice(4, 12).arrayBuffer());
+  return /ftyp(heic|heix|hevc|hevx|heim|heis|mif1|msf1)/.test(head);
+}
+/* Turns any photo (including iPhone HEIC) into a JPEG the browser can show, max 2400px */
 async function prepPhoto(file) {
-  let bmp;
-  try { bmp = await createImageBitmap(file); }
+  let src = file, bmp;
+  try { bmp = await createImageBitmap(src); }
   catch {
-    if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name)) throw new Error("That's an iPhone HEIC photo, which Chrome can't open. Open it in Preview → File → Export → Format: JPEG, then upload the JPEG.");
-    throw new Error("This browser can't open that image. Try a JPG or PNG.");
+    if (!(await isHeic(file))) throw new Error("This browser can't open that image. Try a JPG or PNG.");
+    toast("Converting your iPhone photo… (a few seconds)");
+    const conv = await loadHeic();
+    let out; try { out = await conv({blob: file, toType: "image/jpeg", quality: 0.9}); } catch (e) { throw new Error("Couldn't convert that HEIC photo. Try exporting it as JPEG from Photos."); }
+    src = Array.isArray(out) ? out[0] : out;
+    bmp = await createImageBitmap(src);
   }
   const max = 2400, sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
-  if (sc === 1 && file.size < 3e6 && /jpe?g|png|webp/i.test(file.type)) return file;
+  if (src === file && sc === 1 && file.size < 3e6 && /jpe?g|png|webp/i.test(file.type)) return file;
   const c = document.createElement("canvas"); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
   c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
   const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.86));
