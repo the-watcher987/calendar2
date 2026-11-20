@@ -240,12 +240,137 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:po
 .age-num{font-size:52px;font-weight:750;letter-spacing:-.03em;line-height:1}
 .note{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);border-left:4px solid var(--accent)}
 
+
+/* ===== v5: colorful layer ===== */
+:root{
+  --c-blue:#2a78d6; --c-orange:#eb6834; --c-aqua:#1baf7a; --c-yellow:#eda100; --c-violet:#6250d6; --c-red:#e34948; --c-green:#008300; --c-magenta:#e87ba4;
+  --g-blue:linear-gradient(135deg,#4f8ff7,#2563eb); --g-violet:linear-gradient(135deg,#9b87f5,#6250d6); --g-teal:linear-gradient(135deg,#2dd4bf,#0d9488);
+  --g-orange:linear-gradient(135deg,#fb923c,#ea580c); --g-amber:linear-gradient(135deg,#fbbf24,#d97706); --g-green:linear-gradient(135deg,#4ade80,#16a34a);
+  --g-coral:linear-gradient(135deg,#fb7185,#e34948); --g-indigo:linear-gradient(135deg,#818cf8,#4338ca);
+}
+[data-theme="dark"]{ --c-blue:#3987e5; --c-orange:#d95926; --c-aqua:#199e70; --c-yellow:#c98500; --c-violet:#9085e9; --c-red:#e66767; --c-green:#0ca30c; --c-magenta:#d55181; }
+body{background:radial-gradient(1200px 600px at 100% -10%,color-mix(in srgb,var(--c-violet) 9%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 10%,color-mix(in srgb,var(--c-aqua) 8%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
+.card{transition:transform .15s ease,box-shadow .15s ease}
+.nav-item .nb{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;color:#fff}
+.nav-item .nb svg{width:16px;height:16px}
+.topbar h1{background:linear-gradient(90deg,var(--text),color-mix(in srgb,var(--accent) 70%,var(--text)));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* sidebar: docked, collapsible, or sliding drawer */
+.menu-btn{display:inline-grid !important}
+.side{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+body.side-collapsed .app,body.home-mode .app{grid-template-columns:1fr}
+body.side-collapsed .side,body.home-mode .side{position:fixed;left:0;top:0;bottom:0;width:272px;z-index:60;transform:translateX(-100%);box-shadow:20px 0 60px rgba(0,0,0,.35)}
+body.nav-open .side{transform:none}
+#scrim{position:fixed;inset:0;background:rgba(5,10,20,.45);backdrop-filter:blur(2px);z-index:55;opacity:0;pointer-events:none;transition:opacity .25s}
+body.nav-open #scrim{opacity:1;pointer-events:auto}
+body.home-mode .topbar{display:none}
+body.home-mode .content{max-width:none;padding:0}
+
+/* ===== home hero ===== */
+.hero-x{position:relative;min-height:100vh;display:flex;flex-direction:column;color:#fff;overflow:hidden;
+  background:radial-gradient(60% 70% at 15% 20%,#3b5bdb 0,transparent 60%),radial-gradient(50% 60% at 85% 25%,#7048e8 0,transparent 60%),radial-gradient(60% 60% at 70% 90%,#0ca678 0,transparent 60%),radial-gradient(50% 50% at 20% 85%,#f08c00 0,transparent 55%),#0b1226;
+  background-size:140% 140%;animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{from{background-position:0% 0%}to{background-position:100% 100%}}
+.hero-x .bgimg{position:absolute;inset:0;background-size:cover;background-position:center;transform:scale(1.03);animation:kb 30s ease-in-out infinite alternate}
+@keyframes kb{to{transform:scale(1.1)}}
+.hero-x .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,10,25,.55),rgba(5,10,25,.25) 40%,rgba(5,10,25,.7))}
+.hero-x > .in{position:relative;flex:1;display:flex;flex-direction:column;padding:22px 28px 112px}
+.hero-bar{display:flex;align-items:center;gap:10px}
+.glass-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);backdrop-filter:blur(10px);color:#fff;padding:9px 14px;border-radius:12px;cursor:pointer;font-weight:600;font-size:14px}
+.glass-btn:hover{background:rgba(255,255,255,.24)}
+.glass-btn svg{stroke:#fff}
+.hero-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:30px 0}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:13px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px)}
+.hero-title{font-size:clamp(28px,4.4vw,52px);font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 30px rgba(0,0,0,.35)}
+.cd{display:flex;gap:clamp(8px,1.6vw,20px);margin-top:6px}
+.cd .u{min-width:clamp(78px,12vw,170px);padding:clamp(12px,2vw,22px) clamp(8px,1.4vw,16px);border-radius:22px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.cd .n{font-size:clamp(40px,8vw,108px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.cd .l{margin-top:8px;font-size:clamp(11px,1.2vw,14px);text-transform:uppercase;letter-spacing:.16em;font-weight:700;opacity:.85}
+.cd .u:nth-child(1){border-top:3px solid #74c0fc}.cd .u:nth-child(2){border-top:3px solid #b197fc}.cd .u:nth-child(3){border-top:3px solid #63e6be}.cd .u:nth-child(4){border-top:3px solid #ffd43b}
+.journey{width:min(720px,90%);margin-top:16px}
+.journey .track{height:12px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;border:1px solid rgba(255,255,255,.2)}
+.journey .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#74c0fc,#b197fc,#63e6be,#ffd43b)}
+.journey .row{justify-content:space-between;font-size:13px;opacity:.9;margin-top:8px;font-weight:600}
+.scroll-hint{align-self:center;opacity:.8;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px;animation:bob 2s ease-in-out infinite;cursor:pointer;background:none;border:0;color:#fff}
+@keyframes bob{50%{transform:translateY(6px)}}
+.scroll-hint svg{transform:rotate(90deg)}
+.home-wrap{max-width:1280px;margin:0 auto;padding:26px 32px 56px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:-90px;position:relative;z-index:2}
+.tile{border:0;text-align:left;color:#fff;border-radius:20px;padding:18px;cursor:pointer;min-height:122px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 14px 34px rgba(15,23,42,.18);opacity:0;transform:translateY(18px) scale(.96);animation:pop-in .5s cubic-bezier(.2,.9,.3,1.3) forwards;position:relative;overflow:hidden}
+.tile::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.14)}
+.tile:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 20px 40px rgba(15,23,42,.25)}
+.tile .ti{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.tile .ti svg{stroke:#fff}
+.tile b{font-size:17px;display:block;margin-top:12px}
+.tile span{font-size:13px;opacity:.92}
+@keyframes pop-in{to{opacity:1;transform:none}}
+
+/* ===== GPA dashboard ===== */
+.ring-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:20px 14px;position:relative;overflow:hidden}
+.ring-card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--rc)}
+.ring-card .rv{font-size:28px;font-weight:800;letter-spacing:-.02em;fill:var(--text)}
+.ring-card .rs{font-size:12px;fill:var(--muted)}
+.chart-card svg{width:100%;height:auto;display:block;overflow:visible}
+.ax{font-size:11px;fill:var(--muted)}
+.gl{stroke:var(--line);stroke-width:1}
+.legend-x{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend-x i{width:12px;height:12px;border-radius:4px;display:inline-block;margin-right:6px;vertical-align:-2px}
+#tip{position:fixed;z-index:200;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.4;opacity:0;transition:opacity .1s;max-width:240px}
+.hov{cursor:default;transition:opacity .12s}
+.hov:hover{opacity:.82}
+.fun-stat{border-radius:18px;padding:16px 18px;color:#fff;position:relative;overflow:hidden}
+.fun-stat::after{content:"";position:absolute;right:-24px;bottom:-24px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.15)}
+.fun-stat .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;opacity:.9}
+.fun-stat .v{font-size:26px;font-weight:800;margin-top:4px}
+.fun-stat .s{font-size:12.5px;opacity:.9}
+
+/* expected grade pill */
+select.pill{appearance:auto;border:1.5px dashed color-mix(in srgb,var(--c-violet) 55%,var(--line));background:color-mix(in srgb,var(--c-violet) 8%,transparent);color:var(--text);border-radius:999px;padding:4px 8px;font-weight:650;cursor:pointer;font-size:13px;width:92px}
+select.pill.set{border-style:solid;background:color-mix(in srgb,var(--c-violet) 18%,transparent)}
+select.pill:focus{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c-violet) 25%,transparent)}
+
+/* ===== notes ===== */
+.note-compose{border-radius:22px;padding:22px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.note-compose::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--c-blue),var(--c-violet),var(--c-aqua),var(--c-yellow),var(--c-orange))}
+.note-compose .big-title{font-size:22px;font-weight:750;border:0;background:none;width:100%;outline:none;padding:4px 0}
+.note-compose textarea{font-size:16px;line-height:1.6;border:0;background:none;width:100%;outline:none;resize:vertical;min-height:120px}
+.color-dots{display:flex;gap:8px}
+.color-dots button{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.color-dots button.on{border-color:var(--text);box-shadow:0 0 0 2px var(--panel) inset}
+.notes-grid{columns:3 300px;column-gap:16px;margin-top:18px}
+.n-card{break-inside:avoid;margin-bottom:16px;border-radius:20px;padding:18px 18px 14px;color:#1b1b1b;box-shadow:0 10px 26px rgba(15,23,42,.12);position:relative;transition:transform .15s}
+.n-card:hover{transform:translateY(-3px) rotate(-.3deg)}
+.n-card .nt{font-size:19px;font-weight:800;width:100%;border:0;background:none;outline:none;color:inherit}
+.n-card textarea{width:100%;border:0;background:none;outline:none;resize:none;font-size:15.5px;line-height:1.55;color:inherit;min-height:60px;margin-top:6px;font-family:inherit}
+.n-card .meta{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.75;margin-top:6px}
+.n-card .icon-btn{color:inherit;opacity:.7}
+.n-card .icon-btn:hover{opacity:1;background:rgba(0,0,0,.08)}
+.n-card .pin{position:absolute;top:12px;right:12px}
+
+/* ===== circuit tool ===== */
+.res-svg{width:100%;max-width:420px;height:auto}
+.out-big{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.band-sel{display:flex;gap:6px;flex-wrap:wrap}
+.band-sel select{border-radius:9px;padding:6px 8px;border:1px solid var(--line);background:var(--panel2);font-weight:600}
+.tool-card{position:relative;overflow:hidden}
+.tool-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc)}
+
+@media (max-width:1050px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){
+  .tiles{grid-template-columns:1fr 1fr;margin-top:-60px}
+  .home-wrap{padding:20px 16px 40px}
+  .hero-x > .in{padding:16px 16px 84px}
+  .glass-btn .lbl{display:none}
+  .journey .row{font-size:11.5px;flex-wrap:nowrap}
+  .journey .row span:first-child,.journey .row span:last-child{white-space:nowrap}
+  .cd .u{min-width:0;flex:1;border-radius:16px}
+}
+
 @media (max-width:1050px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr 1fr}}
 @media (max-width:820px){
   .app{grid-template-columns:1fr}
   .side{position:fixed;left:0;top:0;bottom:0;width:272px;z-index:60;transform:translateX(-100%);transition:transform .2s}
   body.nav-open .side{transform:none}
-  body.nav-open::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
   .menu-btn{display:inline-grid}
   .topbar,.content{padding-left:16px;padding-right:16px}
   .g2,.g3,.g4,.grid{grid-template-columns:1fr !important}
@@ -268,7 +393,9 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:po
     <main class="content" id="view"></main>
   </div>
 </div>
+<div id="scrim" data-act="closeNav"></div>
 <div id="layer"></div>
+<div id="tip"></div>
 <div class="toasts" id="toasts"></div>
 <input type="file" id="filePick" class="hidden">
 
@@ -468,7 +595,8 @@ function seedState() {
 /* Upgrades data saved by older versions without losing anything */
 function migrate(s) {
   s.settings = {...DEFAULT_SETTINGS, ...(s.settings || {})};
-  s.profile = {...SEED.profile, birthdate: "", ...(s.profile || {})};
+  s.profile = {...SEED.profile, birthdate: "", gradTime: "10:00", startDate: "2025-08-25", heroImage: "", ...(s.profile || {})};
+  for (const n of s.notes || []) { n.color ||= "#fff3b0"; n.pinned ??= false; }
   s.events ||= []; s.notes ||= []; s.notified ||= {}; s.cloudFiles ||= {}; s.ui ||= {};
   s.ics ||= {events: [], lastSync: null, source: "", label: ""};
   if (s.ics.url) { try { if (!localStorage.getItem(ICS_KEY)) localStorage.setItem(ICS_KEY, s.ics.url); } catch {} delete s.ics.url; }
@@ -1186,12 +1314,14 @@ function applyScan() {
    ===================================================================== */
 const NAV = [
   {id: "home", label: "Home", icon: "home"},
-  {id: "academics", label: "Academics", icon: "book", subs: [["plan", "Plan & GPA"], ["courses", "Courses & Syllabi"], ["notes", "Notes"]]},
+  {id: "academics", label: "Academics", icon: "book", subs: [["gpa", "GPA Dashboard"], ["plan", "Plan & Grades"], ["courses", "Courses & Syllabi"], ["notes", "Notes"]]},
   {id: "calendar", label: "Calendar", icon: "calendar", subs: [["month", "Month"], ["agenda", "Agenda"], ["google", "Google Calendar"]]},
   {id: "career", label: "Career", icon: "briefcase", subs: [["resume", "Resume"], ["grad", "Grad Schools"], ["research", "Research Log"]]},
-  {id: "tools", label: "Tools", icon: "grid", subs: [["age", "Age Calculator"]]},
+  {id: "tools", label: "Tools", icon: "grid", subs: [["circuits", "Circuit Calculator"], ["age", "Age Calculator"]]},
   {id: "settings", label: "Settings", icon: "sliders", subs: [["appearance", "Appearance"], ["sync", "Google & Sync"], ["reminders", "Reminders & App"], ["profile", "Profile"], ["data", "Data & Backup"]]}
 ];
+const NAV_GRAD = {home: "var(--g-blue)", academics: "var(--g-violet)", calendar: "var(--g-teal)", career: "var(--g-orange)", tools: "var(--g-amber)", settings: "var(--g-indigo)"};
+const navIcon = n => `<span class="nb" style="background:${NAV_GRAD[n.id]}">${ic(n.icon)}</span>`;
 let openGroups = new Set(LS.get("focus.navOpen", ["academics", "calendar", "career"]));
 function route() {
   const [, main = "home", sub] = (location.hash || "#/home").split("/");
@@ -1205,14 +1335,18 @@ function renderSide() {
     <div class="brand"><div class="logo">${ic("cap")}</div><div>FOCUS<small>${esc(S.profile.school)}</small></div></div>
     <nav class="nav">${NAV.map(n => n.subs ? `
       <div class="nav-group ${openGroups.has(n.id) || r.main === n.id ? "open" : ""}">
-        <button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navGroup" data-id="${n.id}">${ic(n.icon)}<span>${n.label}</span>${ic("chev", "sm chev")}</button>
+        <button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="navGroup" data-id="${n.id}">${navIcon(n)}<span>${n.label}</span>${ic("chev", "sm chev")}</button>
         <div class="subnav">${n.subs.map(s => `<button class="sub-item ${r.main === n.id && r.sub === s[0] ? "active" : ""}" data-act="nav" data-main="${n.id}" data-sub="${s[0]}">${s[1]}</button>`).join("")}</div>
-      </div>` : `<button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="nav" data-main="${n.id}">${ic(n.icon)}<span>${n.label}</span></button>`).join("")}
+      </div>` : `<button class="nav-item ${r.main === n.id ? "active" : ""}" data-act="nav" data-main="${n.id}">${navIcon(n)}<span>${n.label}</span></button>`).join("")}
     </nav>
     <div class="side-foot">${esc(S.profile.fullName || S.profile.name)}<br>${esc(S.profile.major)}</div>`;
 }
+let homeTick = null;
 function render() {
   const r = route();
+  clearInterval(homeTick); homeTick = null;
+  document.body.classList.toggle("home-mode", r.main === "home");
+  document.body.classList.toggle("side-collapsed", r.main !== "home" && LS.get("focus.sideCollapsed", false) && innerWidth > 820);
   renderSide();
   $(".menu-btn").innerHTML = ic("menu");
   const subLabel = r.nav.subs ? r.nav.subs.find(s => s[0] === r.sub)[1] : "";
@@ -1244,55 +1378,251 @@ function agendaRows(list, emptyMsg) {
     <div class="t">${e.allDay ? "All day" : fmtTime(e.start)}</div><div class="bar" style="background:${SRC[e.source].color}"></div>
     <div><div class="ti">${esc(e.title)}</div><div class="meta">${[e.allDay ? "" : fmtTime(e.start) + " – " + fmtTime(e.end), e.location, SRC[e.source].label].filter(Boolean).map(esc).join(" · ")}</div></div></div>`).join("");
 }
+/* ---------- Home: live graduation countdown ---------- */
+let heroUrl = null, heroUrlFor = null;
+async function heroImageUrl() {
+  const id = S.profile.heroImage; if (!id) return null; if (heroUrlFor === id && heroUrl) return heroUrl;
+  let rec = null; try { rec = await Cloud.getFile(id); } catch {} if (!rec) return null;
+  if (heroUrl) URL.revokeObjectURL(heroUrl); heroUrl = URL.createObjectURL(rec.blob); heroUrlFor = id; return heroUrl;
+}
+function gradTarget() { if (!S.profile.gradDate) return null; const d = parseYmd(S.profile.gradDate), [h, m] = (S.profile.gradTime || "10:00").split(":").map(Number); d.setHours(h, m, 0, 0); return d; }
+function cdParts(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return {d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60}; }
+function journeyPct() { const st = parseYmd(S.profile.startDate || "2025-08-25"), t = gradTarget(); if (!t) return 0; return Math.max(0, Math.min(100, (Date.now() - st) / (t - st) * 100)); }
 VIEWS.home = () => {
-  const now = new Date(), T = totals(), cur = currentSemester();
-  const hr = now.getHours(), greet = hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
-  const today = eventsOnDay(now);
+  const now = new Date(), t = gradTarget(), cur = currentSemester(), today = eventsOnDay(now);
+  const hr = now.getHours(), greet = hr < 5 ? "Up late" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+  const p = t ? cdParts(t - now) : null, done = t && t <= now, pct = journeyPct();
   const week = eventsBetween(addDays(startOfDay(now), 1), addDays(startOfDay(now), 8));
   const byDay = {}; week.forEach(e => { const k = ymd(e.start); (byDay[k] ||= []).push(e); });
-  const grad = S.profile.gradDate ? Math.ceil((parseYmd(S.profile.gradDate) - startOfDay(now)) / 864e5) : null;
-  const curG = gpaOf(cur.courses), curCr = cur.courses.reduce((a, c) => a + +c.credits, 0);
-  const pct = T.total ? Math.round(T.earned / T.total * 100) : 0;
-  const nextDl = S.gradSchools.filter(g => g.deadline && parseYmd(g.deadline) >= startOfDay(now)).sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
-  const res = S.resumes.find(x => x.current), curP = gpaOf(cur.courses, true);
   const soon = dueSoon(7).filter(e => e.source !== "office").slice(0, 4), W = planWarnings(), nW = [...W.values()].reduce((a, l) => a + l.length, 0);
   const ms = S.research.milestones.find(m => !m.done);
+  const nextDl = S.gradSchools.filter(g => g.deadline && parseYmd(g.deadline) >= startOfDay(now)).sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
+  const nextEv = eventsBetween(now, addDays(now, 14)).find(e => !e.allDay && e.start > now);
+  const tiles = [
+    ["calendar", "Today", today.length ? `${today.length} thing${today.length > 1 ? "s" : ""} on your plate` : "Nothing scheduled", "var(--g-blue)", "calendar", "agenda"],
+    ["chart", "GPA", "Rings, charts & trends", "var(--g-violet)", "academics", "gpa"],
+    ["book", "Courses", `${cur.courses.length} in ${cur.name}`, "var(--g-teal)", "academics", "courses"],
+    ["clock", "Up next", nextEv ? `${nextEv.title} · ${fmtDate(nextEv.start, {weekday: "short"})} ${fmtTime(nextEv.start)}` : "Clear for two weeks", "var(--g-orange)", "calendar", "month"],
+    ["cap", "Grad schools", nextDl ? `${nextDl.name} due ${fmtDate(parseYmd(nextDl.deadline), {month: "short", day: "numeric"})}` : `${S.gradSchools.length} schools tracked`, "var(--g-indigo)", "career", "grad"],
+    ["note", "Notes", `${S.notes.length} note${S.notes.length === 1 ? "" : "s"}`, "var(--g-amber)", "academics", "notes"],
+    ["spark", "Research", ms ? `Next: ${ms.term}` : "All milestones done!", "var(--g-green)", "career", "research"],
+    ["grid", "Tools", "Circuits & more", "var(--g-coral)", "tools", "circuits"]
+  ];
   const heads = [
     ...soon.map(e => `<div class="row small" data-act="openEvent" data-id="${esc(e.id)}" style="cursor:pointer"><span class="chip ${e.days <= 1 ? "bad" : e.days <= 3 ? "warn" : ""}">${e.days === 0 ? "Today" : e.days === 1 ? "Tomorrow" : "In " + e.days + " days"}</span><b>${esc(e.title)}</b></div>`),
     Cloud.configured && Cloud.canRun && !Cloud.signedIn ? `<div class="row small"><span class="chip">${ic("google", "sm")}</span>Google isn't connected on this device.<button class="btn sm" data-act="gSignIn">Connect</button></div>` : "",
-    nW ? `<div class="row small"><span class="chip warn">${nW}</span>plan warning${nW > 1 ? "s" : ""} (prerequisites or credit limits)<button class="btn sm ghost" data-act="nav" data-main="academics" data-sub="plan">Review</button></div>` : "",
+    nW ? `<div class="row small"><span class="chip warn">${nW}</span>plan warning${nW > 1 ? "s" : ""} to review<button class="btn sm ghost" data-act="nav" data-main="academics" data-sub="plan">Review</button></div>` : "",
     ms ? `<div class="row small"><span class="chip acc">${ic("cap", "sm")}</span>Next research milestone (${esc(ms.term)}): ${esc(ms.text)}</div>` : ""
   ].filter(Boolean);
   return `
-  <div class="hero"><div><h2>${greet}, ${esc(S.profile.name)}</h2><p>${fmtDate(now, {weekday: "long", month: "long", day: "numeric", year: "numeric"})} · ${esc(cur.name)}</p></div>
-    <div class="row"><button class="btn" data-act="newEvent">${ic("plus")}Add event</button><button class="btn primary" data-act="nav" data-main="academics" data-sub="plan">${ic("chart")}Open GPA</button></div></div>
-  <div class="grid g4">
-    <div class="card stat"><div class="k">Cumulative GPA</div><div class="v">${fmtGpa(T.gpa)}</div><div class="s">${T.credits} GPA credits</div></div>
-    <div class="card stat"><div class="k">${esc(cur.name)}</div><div class="v">${curG.gpa != null ? fmtGpa(curG.gpa) : curP.gpa != null ? `<span title="Projected from expected grades">~${fmtGpa(curP.gpa)}</span>` : "—"}</div><div class="s">${cur.courses.length} courses · ${curCr} credits${curG.gpa == null && curP.gpa != null ? " · projected" : ""}</div></div>
-    <div class="card stat"><div class="k">Degree progress</div><div class="v">${pct}%</div><div class="progress" style="margin-top:8px"><i style="width:${pct}%"></i></div><div class="s" style="margin-top:6px">${T.earned} of ${T.total} planned credits</div></div>
-    <div class="card stat"><div class="k">Graduation</div><div class="v">${grad != null ? grad : "—"}<span class="small muted" style="font-weight:600"> days</span></div><div class="s">${S.profile.gradDate ? fmtDate(parseYmd(S.profile.gradDate), {month: "long", day: "numeric", year: "numeric"}) : "Set in Settings → Profile"}</div></div>
-  </div>
-  ${heads.length ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Heads up</h2></div><div class="stack" style="gap:10px">${heads.join("")}</div></div>` : ""}
-  <div class="grid g2" style="margin-top:16px;grid-template-columns:1.25fr 1fr">
-    <div class="stack" style="gap:16px">
-      <div class="card"><div class="card-h"><h2>Today</h2><span class="chip">${today.length} item${today.length === 1 ? "" : "s"}</span><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="calendar" data-sub="month">Calendar ${ic("chev", "sm")}</button></div>
-        ${agendaRows(today, S.ics.events.length || S.gcal?.events?.length ? "Nothing on today." : "Nothing on today. Connect Google Calendar to see your classes and plans here.")}</div>
-      <div class="card"><div class="card-h"><h2>Next 7 days</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="calendar" data-sub="agenda">Agenda ${ic("chev", "sm")}</button></div>
-        ${Object.keys(byDay).length ? Object.entries(byDay).slice(0, 7).map(([k, l]) => `<div class="day-h">${fmtDate(parseYmd(k), {weekday: "long", month: "short", day: "numeric"})}</div>${agendaRows(l.slice(0, 6))}${l.length > 6 ? `<div class="more">+${l.length - 6} more</div>` : ""}`).join("") : `<div class="empty">No upcoming events this week.</div>`}</div>
-    </div>
-    <div class="stack" style="gap:16px">
-      <div class="card"><div class="card-h"><h2>${esc(cur.name)} courses</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="academics" data-sub="courses">All ${ic("chev", "sm")}</button></div>
-        ${cur.courses.length ? cur.courses.map(c => `<div class="agenda-item" style="grid-template-columns:1fr auto" data-act="openCourse" data-sem="${cur.id}" data-id="${c.id}">
-          <div><div class="ti">${esc(c.code)} <span class="muted" style="font-weight:500">${esc(c.title)}</span></div>
-          <div class="meta">${c.credits} cr · ${c.syllabus ? "Syllabus ✓" : "No syllabus"} · ${c.officeHours.length ? c.officeHours.length + " office-hour slot" + (c.officeHours.length > 1 ? "s" : "") : "No office hours"}</div></div>
-          <div>${c.grade ? `<span class="chip acc">${esc(c.grade)}</span>` : `<span class="chip">In progress</span>`}</div></div>`).join("") : `<div class="empty">No courses this semester.</div>`}</div>
-      <div class="card"><div class="card-h"><h2>Grad school tracker</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="career" data-sub="grad">Open ${ic("chev", "sm")}</button></div>
-        ${S.gradSchools.slice(0, 6).map(g => { const d = g.requirements.filter(x => x.done).length, n = g.requirements.length; return `<div class="row" style="padding:6px 0"><span class="rank">${g.rank || "–"}</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${esc(g.name)}</div><div class="progress" style="height:6px;margin-top:4px"><i style="width:${n ? d / n * 100 : 0}%"></i></div></div><span class="tiny muted">${d}/${n}</span></div>`; }).join("")}
-        <div class="small muted" style="margin-top:8px">${nextDl ? `Next deadline: <b>${esc(nextDl.name)}</b>, ${fmtDate(parseYmd(nextDl.deadline), {month: "short", day: "numeric", year: "numeric"})}` : "Add application deadlines to see them here and on your calendar."}</div></div>
-      <div class="card"><div class="card-h"><h2>Resume</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="career" data-sub="resume">Open ${ic("chev", "sm")}</button></div>
-        ${res ? `<div class="small">${esc(res.label)} resume · ${esc(res.current.fileName)}<br><span class="muted">Updated ${fmtDate(new Date(res.current.uploaded), {month: "short", day: "numeric", year: "numeric"})}</span></div>` : `<div class="empty">Upload your resume and FOCUS will pull out your key points.</div>`}</div>
+  <section class="hero-x" id="hero"><div class="bgimg" id="heroImg"></div><div class="shade" ${S.profile.heroImage ? "" : 'style="background:linear-gradient(180deg,rgba(5,10,25,.25),rgba(5,10,25,.05) 40%,rgba(5,10,25,.45))"'}></div>
+    <div class="in">
+      <div class="hero-bar"><button class="glass-btn" data-act="toggleNav">${ic("menu")}Menu</button><div style="flex:1"></div>
+        <button class="glass-btn" data-act="heroPhoto">${ic("upload", "sm")}<span class="lbl">${S.profile.heroImage ? "Change photo" : "Add your photo"}</span></button>
+        ${S.profile.heroImage ? `<button class="glass-btn" data-act="heroPhotoDel" title="Remove photo">${ic("x", "sm")}</button>` : ""}
+        <button class="glass-btn" data-act="heroEdit" title="Edit graduation date">${ic("edit", "sm")}</button></div>
+      <div class="hero-mid">
+        <div class="hero-kicker">${ic("cap", "sm")}${greet}, ${esc(S.profile.name)}</div>
+        <div class="hero-title">${done ? "You did it, graduate! 🎓" : t ? "Countdown to graduation" : "Set your graduation date"}</div>
+        ${t && !done ? `<div class="cd" aria-live="off">
+          <div class="u"><div class="n" id="cdD">${p.d.toLocaleString()}</div><div class="l">Days</div></div>
+          <div class="u"><div class="n" id="cdH">${pad(p.h)}</div><div class="l">Hours</div></div>
+          <div class="u"><div class="n" id="cdM">${pad(p.m)}</div><div class="l">Minutes</div></div>
+          <div class="u"><div class="n" id="cdS">${pad(p.s)}</div><div class="l">Seconds</div></div></div>` : ""}
+        ${t ? `<div style="font-size:15px;opacity:.9;font-weight:600">${fmtDate(t, {weekday: "long", month: "long", day: "numeric", year: "numeric"})} · ${esc(S.profile.major)} · ${esc(S.profile.school)}</div>
+        <div class="journey"><div class="track"><div class="fill" id="jFill" style="width:${pct.toFixed(2)}%"></div></div>
+          <div class="row"><span>Started ${fmtDate(parseYmd(S.profile.startDate || "2025-08-25"), {month: "short", year: "numeric"})}</span><span id="jPct">${pct.toFixed(1)}% of the way there</span><span>${fmtDate(t, {month: "short", year: "numeric"})}</span></div></div>` : `<button class="glass-btn" data-act="heroEdit">${ic("calendar", "sm")}Set graduation date</button>`}
+      </div>
+      <button class="scroll-hint" data-act="scrollHome">Your day ${ic("chev", "sm")}</button>
+    </div></section>
+  <div class="home-wrap" id="homeBelow">
+    <div class="tiles">${tiles.map(([icon, label, sub, bg, m, sb], i) => `<button class="tile" style="background:${bg};animation-delay:${0.05 + i * 0.06}s" data-act="nav" data-main="${m}" data-sub="${sb}"><div class="ti">${ic(icon)}</div><div><b>${label}</b><span>${esc(sub)}</span></div></button>`).join("")}</div>
+    ${heads.length ? `<div class="card" style="margin-top:18px"><div class="card-h"><h2>Heads up</h2></div><div class="stack" style="gap:10px">${heads.join("")}</div></div>` : ""}
+    <div class="grid g2" style="margin-top:16px;grid-template-columns:1.25fr 1fr">
+      <div class="stack" style="gap:16px">
+        <div class="card"><div class="card-h"><h2>Today</h2><span class="chip acc">${fmtDate(now, {weekday: "long", month: "short", day: "numeric"})}</span><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="calendar" data-sub="month">Calendar ${ic("chev", "sm")}</button></div>
+          ${agendaRows(today, S.ics.events.length || S.gcal?.events?.length ? "Nothing on today. Enjoy it." : "Nothing on today. Connect Google Calendar to see your classes here.")}</div>
+        <div class="card"><div class="card-h"><h2>Next 7 days</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="calendar" data-sub="agenda">Agenda ${ic("chev", "sm")}</button></div>
+          ${Object.keys(byDay).length ? Object.entries(byDay).slice(0, 7).map(([k, l]) => `<div class="day-h">${fmtDate(parseYmd(k), {weekday: "long", month: "short", day: "numeric"})}</div>${agendaRows(l.slice(0, 6))}${l.length > 6 ? `<div class="more">+${l.length - 6} more</div>` : ""}`).join("") : `<div class="empty">No upcoming events this week.</div>`}</div>
+      </div>
+      <div class="stack" style="gap:16px">
+        <div class="card"><div class="card-h"><h2>${esc(cur.name)} courses</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="academics" data-sub="courses">All ${ic("chev", "sm")}</button></div>
+          ${cur.courses.length ? cur.courses.map((c, i) => `<div class="agenda-item" style="grid-template-columns:4px 1fr" data-act="openCourse" data-sem="${cur.id}" data-id="${c.id}"><div class="bar" style="background:${["var(--c-blue)", "var(--c-orange)", "var(--c-aqua)", "var(--c-violet)", "var(--c-yellow)", "var(--c-red)"][i % 6]}"></div>
+            <div><div class="ti">${esc(c.code)} <span class="muted" style="font-weight:500">${esc(c.title)}</span></div>
+            <div class="meta">${c.credits} cr · ${c.syllabus ? "Syllabus ✓" : "No syllabus"} · ${c.officeHours.length ? c.officeHours.length + " office-hour slot" + (c.officeHours.length > 1 ? "s" : "") : "No office hours"}${c.keyDates.filter(k => k.date >= ymd(now)).length ? ` · next: ${esc(c.keyDates.filter(k => k.date >= ymd(now))[0].label)}` : ""}</div></div></div>`).join("") : `<div class="empty">No courses this semester.</div>`}</div>
+        <div class="card"><div class="card-h"><h2>Grad school tracker</h2><div class="sp"></div><button class="btn sm ghost" data-act="nav" data-main="career" data-sub="grad">Open ${ic("chev", "sm")}</button></div>
+          ${S.gradSchools.slice(0, 6).map(g => { const d = g.requirements.filter(x => x.done).length, n = g.requirements.length; return `<div class="row" style="padding:6px 0;flex-wrap:nowrap"><span class="rank">${g.rank || "–"}</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${esc(g.name)}</div><div class="progress" style="height:6px;margin-top:4px"><i style="width:${n ? d / n * 100 : 0}%;background:var(--g-orange)"></i></div></div><span class="tiny muted">${d}/${n}</span></div>`; }).join("")}</div>
+      </div>
     </div>
   </div>`;
+};
+AFTER.home = () => {
+  heroImageUrl().then(u => { const el = $("#heroImg"); if (el && u) el.style.backgroundImage = `url("${u}")`; });
+  const t = gradTarget(); if (!t) return;
+  homeTick = setInterval(() => {
+    const el = $("#cdS"); if (!el) return clearInterval(homeTick);
+    const p = cdParts(t - Date.now());
+    if (t - Date.now() <= 0) { clearInterval(homeTick); return rerender(); }
+    $("#cdD").textContent = p.d.toLocaleString(); $("#cdH").textContent = pad(p.h); $("#cdM").textContent = pad(p.m); el.textContent = pad(p.s);
+    if (p.s % 30 === 0) { const pc = journeyPct(); $("#jFill").style.width = pc.toFixed(2) + "%"; $("#jPct").textContent = pc.toFixed(1) + "% of the way there"; }
+  }, 1000);
+};
+function heroEditModal() {
+  modal("Graduation countdown", `<div class="stack">
+    <div class="grid g2"><label class="f"><span>Graduation date</span><input class="input" type="date" id="hgDate" value="${esc(S.profile.gradDate)}"></label>
+    <label class="f"><span>Ceremony time</span><input class="input" type="time" id="hgTime" value="${esc(S.profile.gradTime || "10:00")}"></label></div>
+    <label class="f"><span>College start date (for the progress bar)</span><input class="input" type="date" id="hgStart" value="${esc(S.profile.startDate || "2025-08-25")}"></label>
+    <div class="tiny muted">Not sure of the exact time? Leave 10:00 AM and update it when UK posts the commencement schedule.</div></div>`,
+    `<button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="heroSave">${ic("check")}Save</button>`);
+}
+
+/* ---------- Academics: GPA dashboard ---------- */
+const GPA_COLORS = {cum: "var(--c-blue)", proj: "var(--c-orange)", es: "var(--c-aqua)", deg: "var(--c-violet)"};
+function ringSVG(frac, color, big, small) {
+  const r = 52, C = 2 * Math.PI * r, f = Math.max(0, Math.min(1, frac || 0));
+  return `<svg viewBox="0 0 140 140" width="150" height="150" role="img" aria-label="${esc(big)} ${esc(small)}">
+    <circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--line)" stroke-width="12"/>
+    <circle cx="70" cy="70" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)" style="transition:stroke-dasharray .8s ease"/>
+    <text x="70" y="72" text-anchor="middle" class="rv">${esc(big)}</text><text x="70" y="94" text-anchor="middle" class="rs">${esc(small)}</text></svg>`;
+}
+function supIn(list, projected) {
+  const out = new Set(); if (!S.settings.autoRepeat) return out;
+  const g = c => POINTS[c.grade] !== undefined ? c.grade : (projected && !c.grade && POINTS[c.expected] !== undefined ? c.expected : null);
+  list.forEach((c, i) => { if (parseCode(c.code) && POINTS[c.grade] !== undefined && list.slice(i + 1).some(k => codeMatch(k.code, c.code) && g(k))) out.add(c.id); });
+  return out;
+}
+VIEWS["academics/gpa"] = () => {
+  const T = totals(), sems = S.semesters.filter(s => /\d{4}/.test(s.name));
+  // per-term and cumulative series
+  const rows = []; let prefix = S.semesters.filter(s => !/\d{4}/.test(s.name)).flatMap(s => s.courses);
+  for (const s of sems) {
+    prefix = prefix.concat(s.courses);
+    const real = gpaOf(s.courses, false, supIn(prefix, false)), proj = gpaOf(s.courses, true, supIn(prefix, true));
+    const cum = gpaOf(prefix, false, supIn(prefix, false));
+    rows.push({name: s.name, short: s.name.replace(/(Fall|Spring|Summer)\s*(\d{2})(\d{2})/, (m, a, b, c) => a.slice(0, 2) + " '" + c), term: real.gpa, proj: real.gpa == null ? proj.gpa : null, cum: real.gpa != null ? cum.gpa : null, cr: s.courses.reduce((a, c) => a + +c.credits, 0)});
+  }
+  const shown = rows.filter(r => r.term != null || r.proj != null);
+  // grade mix by credits (counted grades)
+  const mix = {}; for (const c of allCourses()) if (c.grade && !T.sup.has(c.id)) { const k = ["P", "CR"].includes(c.grade) ? "P/CR" : c.grade; mix[k] = (mix[k] || 0) + +c.credits; }
+  const mixOrder = [["A", "var(--c-blue)"], ["B", "var(--c-aqua)"], ["C", "var(--c-yellow)"], ["D", "var(--c-orange)"], ["E", "var(--c-red)"], ["P/CR", "var(--c-violet)"]].filter(([k]) => mix[k]);
+  const maxMix = Math.max(1, ...Object.values(mix));
+  const best = rows.filter(r => r.term != null).sort((a, b) => b.term - a.term)[0];
+  const pct = T.total ? T.earned / T.total : 0;
+  // bar chart geometry
+  const W = 640, H = 250, L = 34, B = 30, top = 12, n = Math.max(1, shown.length), bw = Math.min(56, (W - L - 10) / n * 0.55), step = (W - L - 10) / n;
+  const y = v => top + (H - B - top) * (1 - v / 4);
+  const bars = shown.map((r, i) => { const v = r.term ?? r.proj, x = L + step * i + (step - bw) / 2, yy = y(v), h = (H - B) - yy;
+    return `<path class="hov" d="M${x},${H - B} V${yy + 4} Q${x},${yy} ${x + 4},${yy} H${x + bw - 4} Q${x + bw},${yy} ${x + bw},${yy + 4} V${H - B} Z" fill="var(--c-blue)" ${r.term == null ? 'fill-opacity=".35" stroke="var(--c-blue)" stroke-dasharray="4 3" stroke-width="1.5"' : ""} data-tip="<b>${esc(esc(r.name))}</b><br>${r.term != null ? "Term GPA " + r.term.toFixed(2) : "Projected " + v.toFixed(2) + " (expected grades)"}<br>${r.cr} credits"/>
+      <text x="${x + bw / 2}" y="${H - B + 18}" text-anchor="middle" class="ax">${esc(r.short)}</text>`; }).join("");
+  const grid = [1, 2, 3, 4].map(v => `<line x1="${L}" x2="${W - 6}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" class="ax">${v.toFixed(1)}</text>`).join("");
+  const pts = rows.map((r, i) => ({...r, i})).filter(r => r.cum != null);
+  const lx = i => L + step * shown.findIndex(s => s.name === rows[i].name) + step / 2;
+  const line = pts.length ? `<polyline fill="none" stroke="var(--c-violet)" stroke-width="2" points="${pts.map(p => `${lx(p.i)},${y(p.cum)}`).join(" ")}"/>` + pts.map(p => `<circle class="hov" cx="${lx(p.i)}" cy="${y(p.cum)}" r="5" fill="var(--c-violet)" stroke="var(--panel)" stroke-width="2" data-tip="<b>${esc(esc(p.name))}</b><br>Cumulative GPA ${p.cum.toFixed(2)}"/>`).join("") : "";
+  return `
+  <div class="grid g4">
+    <div class="card ring-card" style="--rc:${GPA_COLORS.cum}">${ringSVG(T.gpa / 4, GPA_COLORS.cum, fmtGpa(T.gpa), "of 4.00")}<b>Cumulative GPA</b><span class="tiny muted">${T.credits} credits counted</span></div>
+    <div class="card ring-card" style="--rc:${GPA_COLORS.proj}">${ringSVG(T.projected / 4, GPA_COLORS.proj, fmtGpa(T.projected), "projected")}<b>Projected GPA</b><span class="tiny muted">with your Expected grades</span></div>
+    <div class="card ring-card" style="--rc:${GPA_COLORS.es}">${ringSVG(T.es / 4, GPA_COLORS.es, fmtGpa(T.es), "of 4.00")}<b>Engineering Standing</b><span class="tiny muted">freshman-year courses</span></div>
+    <div class="card ring-card" style="--rc:${GPA_COLORS.deg}">${ringSVG(pct, GPA_COLORS.deg, Math.round(pct * 100) + "%", T.earned + " / " + T.total + " cr")}<b>Degree progress</b><span class="tiny muted">${T.remaining} credits to go</span></div>
+  </div>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="fun-stat" style="background:var(--g-blue)"><div class="k">Best term</div><div class="v">${best ? best.term.toFixed(2) : "—"}</div><div class="s">${best ? esc(best.name) : "No grades yet"}</div></div>
+    <div class="fun-stat" style="background:var(--g-teal)"><div class="k">A's earned</div><div class="v">${allCourses().filter(c => c.grade === "A" && !T.sup.has(c.id)).length}</div><div class="s">courses with an A</div></div>
+    <div class="fun-stat" style="background:var(--g-orange)"><div class="k">Credits earned</div><div class="v">${T.earned}</div><div class="s">including transfer</div></div>
+    <div class="fun-stat" style="background:var(--g-violet)"><div class="k">Semesters left</div><div class="v">${S.semesters.filter(s => s.status === "planned").length}</div><div class="s">until ${S.profile.gradDate ? fmtDate(parseYmd(S.profile.gradDate), {month: "short", year: "numeric"}) : "graduation"}</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px;grid-template-columns:1.6fr 1fr">
+    <div class="card chart-card"><div class="card-h"><h2>GPA by semester</h2><div class="sp"></div><span class="tiny muted">Hover for details</span></div>
+      ${shown.length ? `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Term GPA by semester">${grid}<line x1="${L}" x2="${W - 6}" y1="${H - B}" y2="${H - B}" stroke="var(--muted)" stroke-opacity=".5"/>${bars}${line}</svg>
+      <div class="legend-x"><span><i style="background:var(--c-blue)"></i>Term GPA</span><span><i style="background:var(--c-blue);opacity:.35;outline:1.5px dashed var(--c-blue)"></i>Projected (expected grades)</span><span><i style="background:var(--c-violet);border-radius:50%"></i>Cumulative GPA</span></div>`
+      : `<div class="empty">Add grades in Plan & Grades to see your chart.</div>`}</div>
+    <div class="card"><div class="card-h"><h2>Grade mix</h2><div class="sp"></div><span class="tiny muted">by credits</span></div>
+      ${mixOrder.length ? mixOrder.map(([k, c]) => `<div class="row hov" style="flex-wrap:nowrap;margin:10px 0" data-tip="<b>${k}</b>: ${mix[k]} credits"><b style="width:44px">${k}</b><div style="flex:1;height:22px;border-radius:6px;background:var(--panel2);overflow:hidden"><div style="height:100%;width:${mix[k] / maxMix * 100}%;background:${c};border-radius:0 4px 4px 0"></div></div><span class="small muted" style="width:52px;text-align:right">${mix[k]} cr</span></div>`).join("") : `<div class="empty">No grades yet.</div>`}
+      <div class="divider"></div>
+      <button class="btn primary" data-act="nav" data-main="academics" data-sub="plan">${ic("edit", "sm")}Edit grades & expected</button></div>
+  </div>
+  <details class="card" style="margin-top:16px"><summary style="cursor:pointer;font-weight:650">Table view</summary>
+    <table class="t" style="margin-top:10px"><thead><tr><th>Semester</th><th>Credits</th><th>Term GPA</th><th>Projected</th><th>Cumulative</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.cr}</td><td>${fmtGpa(r.term)}</td><td>${fmtGpa(r.proj)}</td><td>${fmtGpa(r.cum)}</td></tr>`).join("")}</tbody></table></details>`;
+};
+
+/* ---------- Tools: Circuit calculator ---------- */
+const SI = {p: 1e-12, n: 1e-9, u: 1e-6, "µ": 1e-6, m: 1e-3, "": 1, k: 1e3, K: 1e3, M: 1e6, G: 1e9};
+function parseSI(v) { const m = /^\s*([-+]?\d*\.?\d+(?:e[-+]?\d+)?)\s*([pnuµmkKMG]?)/i.exec(String(v || "")); if (!m) return NaN; const pre = m[2] === "M" ? "M" : m[2] === "m" ? "m" : m[2]; return +m[1] * (SI[pre] ?? 1); }
+function fmtSI(x, unit) { if (!isFinite(x)) return "—"; if (x === 0) return "0 " + unit; const a = Math.abs(x); const t = [[1e9, "G"], [1e6, "M"], [1e3, "k"], [1, ""], [1e-3, "m"], [1e-6, "µ"], [1e-9, "n"], [1e-12, "p"]].find(([f]) => a >= f) || [1e-12, "p"]; return +(x / t[0]).toPrecision(4) + " " + t[1] + unit; }
+const BANDS = [["black", "#111"], ["brown", "#8b4513"], ["red", "#e0201b"], ["orange", "#f7801a"], ["yellow", "#f5d00f"], ["green", "#1a9e3a"], ["blue", "#1f5fe0"], ["violet", "#8a3fd1"], ["grey", "#8a8a8a"], ["white", "#f4f4f4"]];
+const MULT = [...BANDS.map(([n, c], i) => [n, c, 10 ** i]), ["gold", "#d4af37", 0.1], ["silver", "#c0c0c0", 0.01]];
+const TOL = [["brown", "#8b4513", "±1%"], ["red", "#e0201b", "±2%"], ["green", "#1a9e3a", "±0.5%"], ["blue", "#1f5fe0", "±0.25%"], ["violet", "#8a3fd1", "±0.1%"], ["grey", "#8a8a8a", "±0.05%"], ["gold", "#d4af37", "±5%"], ["silver", "#c0c0c0", "±10%"]];
+function toolState() { return S.ui.circ ||= {V: "", I: "", R: "", P: "", five: false, b: [1, 0, 2, 6], list: "1k, 2.2k, 4.7k", rev: "4.7k"}; }
+function ohmSolve() {
+  const st = toolState(), V = parseSI(st.V), I = parseSI(st.I), R = parseSI(st.R), P = parseSI(st.P);
+  const has = {V: isFinite(V), I: isFinite(I), R: isFinite(R), P: isFinite(P)}, n = Object.values(has).filter(Boolean).length;
+  if (n < 2) return {msg: "Enter any two values."};
+  let v = V, i = I, r = R, p = P;
+  if (has.V && has.I) { r = v / i; p = v * i; } else if (has.V && has.R) { i = v / r; p = v * v / r; } else if (has.V && has.P) { i = p / v; r = v * v / p; }
+  else if (has.I && has.R) { v = i * r; p = i * i * r; } else if (has.I && has.P) { v = p / i; r = p / (i * i); } else if (has.R && has.P) { v = Math.sqrt(p * r); i = Math.sqrt(p / r); }
+  return {v, i, r, p, msg: n > 2 ? "Using the first two values you entered; clear one to recompute." : ""};
+}
+function bandValue() { const st = toolState(), b = st.b; const digits = st.five ? b[0] * 100 + b[1] * 10 + b[2] : b[0] * 10 + b[1]; const m = MULT[st.five ? b[3] : b[2]]; const t = TOL[st.five ? b[4] : b[3]] || TOL[6]; return {ohms: digits * m[2], tol: t[2]}; }
+function valueToBands(ohms) {
+  if (!isFinite(ohms) || ohms <= 0) return null; let e = Math.floor(Math.log10(ohms)) - 1; let d = Math.round(ohms / 10 ** e);
+  if (d >= 100) { d = Math.round(d / 10); e++; } if (e < -2 || e > 9) return null;
+  const mi = e >= 0 ? e : e === -1 ? 10 : 11; return [Math.floor(d / 10), d % 10, mi];
+}
+function resistorSVG(cols) {
+  const xs = cols.length === 5 ? [92, 122, 152, 182, 238] : [100, 136, 172, 236];
+  return `<svg class="res-svg" viewBox="0 0 340 90"><line x1="0" y1="45" x2="340" y2="45" stroke="#9aa3b2" stroke-width="5"/><rect x="62" y="17" width="216" height="56" rx="26" fill="#e8d3a6" stroke="#c9b07c" stroke-width="2"/>${cols.map((c, i) => `<rect x="${xs[i]}" y="17" width="16" height="56" fill="${c}" stroke="rgba(0,0,0,.15)"/>`).join("")}</svg>`;
+}
+VIEWS["tools/circuits"] = () => {
+  const st = toolState(), o = ohmSolve(), bv = bandValue(), five = st.five, b = st.b;
+  const digitSel = i => `<select data-act="band" data-i="${i}">${BANDS.map(([n], k) => `<option value="${k}" ${b[i] === k ? "selected" : ""}>${n}</option>`).join("")}</select>`;
+  const multIdx = five ? 3 : 2, tolIdx = five ? 4 : 3;
+  const cols = [...(five ? [0, 1, 2] : [0, 1]).map(i => BANDS[b[i]][1]), MULT[b[multIdx]][1], (TOL[b[tolIdx]] || TOL[6])[1]];
+  const rv = valueToBands(parseSI(st.rev)), list = st.list.split(/[,;\s]+/).map(parseSI).filter(x => isFinite(x) && x > 0);
+  const ser = list.reduce((a, x) => a + x, 0), par = list.length ? 1 / list.reduce((a, x) => a + 1 / x, 0) : NaN;
+  return `<div class="small muted" style="margin-bottom:14px">Type values with prefixes: <span class="kbd">4.7k</span> <span class="kbd">2.2M</span> <span class="kbd">10m</span> (milli) <span class="kbd">100u</span> (micro).</div>
+  <div class="grid g2">
+    <div class="card tool-card" style="--tc:var(--g-blue)"><div class="card-h">${ic("spark")}<h2>Ohm's law & power</h2><div class="sp"></div><button class="btn sm ghost" data-act="ohmClear">Clear</button></div>
+      <div class="grid g2">${[["V", "Voltage (V)", "e.g. 12"], ["I", "Current (A)", "e.g. 20m"], ["R", "Resistance (Ω)", "e.g. 4.7k"], ["P", "Power (W)", "e.g. 0.25"]].map(([k, l, ph]) => `<label class="f"><span>${l}</span><input class="input" value="${esc(st[k])}" placeholder="${ph}" data-act="circ" data-k="${k}"></label>`).join("")}</div>
+      <div id="ohmOut" style="margin-top:14px">${ohmOut(o)}</div></div>
+    <div class="card tool-card" style="--tc:var(--g-orange)"><div class="card-h">${ic("grid")}<h2>Resistor color code</h2><div class="sp"></div><div class="seg"><button class="${five ? "" : "active"}" data-act="bandMode" data-v="4">4-band</button><button class="${five ? "active" : ""}" data-act="bandMode" data-v="5">5-band</button></div></div>
+      ${resistorSVG(cols)}
+      <div class="band-sel" style="margin-top:8px">${(five ? [0, 1, 2] : [0, 1]).map(digitSel).join("")}
+        <select data-act="band" data-i="${multIdx}">${MULT.map(([n, , m], k) => `<option value="${k}" ${b[multIdx] === k ? "selected" : ""}>${n} ×${fmtSI(m, "").trim()}</option>`).join("")}</select>
+        <select data-act="band" data-i="${tolIdx}">${TOL.map(([n, , t], k) => `<option value="${k}" ${b[tolIdx] === k ? "selected" : ""}>${n} ${t}</option>`).join("")}</select></div>
+      <div class="out-big" style="margin-top:12px">${fmtSI(bv.ohms, "Ω")} <span class="small muted" style="font-weight:600">${bv.tol}</span></div>
+      <div class="divider"></div>
+      <label class="f"><span>Or type a value to get its colors (4-band)</span><input class="input" value="${esc(st.rev)}" data-act="circRev" placeholder="e.g. 330, 4.7k"></label>
+      <div id="revOut" style="margin-top:8px">${revOut(rv)}</div></div>
+  </div>
+  <div class="card tool-card" style="--tc:var(--g-teal);margin-top:16px"><div class="card-h">${ic("link")}<h2>Series & parallel resistors</h2></div>
+    <label class="f"><span>Resistor values, separated by commas</span><input class="input" value="${esc(st.list)}" data-act="circList"></label>
+    <div class="grid g2" style="margin-top:12px" id="spOut">${spOut(ser, par, list.length)}</div></div>`;
+};
+function ohmOut(o) { return o.msg && o.v === undefined ? `<div class="empty">${o.msg}</div>` : `<div class="grid g2">${[["V", o.v, "V", "var(--c-blue)"], ["I", o.i, "A", "var(--c-orange)"], ["R", o.r, "Ω", "var(--c-aqua)"], ["P", o.p, "W", "var(--c-violet)"]].map(([k, v, u, c]) => `<div style="padding:10px 12px;border-radius:12px;background:var(--panel2);border-left:4px solid ${c}"><div class="tiny muted">${k}</div><div style="font-size:20px;font-weight:750">${fmtSI(v, u)}</div></div>`).join("")}</div>${o.msg ? `<div class="tiny muted" style="margin-top:6px">${o.msg}</div>` : ""}`; }
+function revOut(rv) { return rv ? `<div class="row">${[BANDS[rv[0]], BANDS[rv[1]], MULT[rv[2]]].map(([n, c]) => `<span class="chip" style="gap:6px"><i class="dot" style="background:${c};width:12px;height:12px;border:1px solid rgba(0,0,0,.2)"></i>${n}</span>`).join("")}<span class="chip">+ gold ±5%</span></div>` : `<div class="tiny muted">Enter a value between 0.1 Ω and 99 GΩ.</div>`; }
+function spOut(ser, par, n) { return `<div style="padding:14px;border-radius:14px;background:var(--panel2)"><div class="tiny muted">Series (R₁ + R₂ + …)</div><div class="out-big">${n ? fmtSI(ser, "Ω") : "—"}</div></div><div style="padding:14px;border-radius:14px;background:var(--panel2)"><div class="tiny muted">Parallel (1/R = Σ 1/Rₙ)</div><div class="out-big">${n ? fmtSI(par, "Ω") : "—"}</div></div>`; }
+
+/* ---------- Academics: Notes ---------- */
+const NOTE_COLORS = [["#fff3b0", "Sunny"], ["#c9f2e3", "Mint"], ["#cfe3ff", "Sky"], ["#e6dcff", "Lilac"], ["#ffd9c2", "Peach"], ["#e9eef5", "Cloud"]];
+VIEWS["academics/notes"] = () => {
+  const q = (S.ui.noteQ || "").toLowerCase(), col = S.ui.noteColor || NOTE_COLORS[0][0];
+  const list = S.notes.filter(n => !q || (n.title + " " + n.body + " " + (n.course || "")).toLowerCase().includes(q)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.at - a.at);
+  return `<div class="note-compose">
+    <input class="big-title" id="noteTitle" placeholder="Title your note…">
+    <textarea id="noteBody" rows="5" placeholder="Write anything: lecture notes, questions for office hours, ideas…"></textarea>
+    <div class="row" style="margin-top:8px"><div class="color-dots">${NOTE_COLORS.map(([c, n]) => `<button title="${n}" class="${c === col ? "on" : ""}" style="background:${c}" data-act="noteColor" data-c="${c}"></button>`).join("")}</div>
+      <input class="input" id="noteCourse" placeholder="Course tag (e.g. MA 114)" style="max-width:220px" list="courseCodes"><datalist id="courseCodes">${[...new Set(allCourses().map(c => c.code).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join("")}</datalist>
+      <div style="flex:1"></div><button class="btn primary" data-act="noteAdd">${ic("plus")}Add note</button></div></div>
+  <div class="row" style="margin-top:20px"><h2 style="font-size:18px">${S.notes.length} note${S.notes.length === 1 ? "" : "s"}</h2><div style="flex:1"></div><input class="input" style="max-width:300px" placeholder="Search notes…" value="${esc(S.ui.noteQ || "")}" data-act="noteQ"></div>
+  ${list.length ? `<div class="notes-grid">${list.map(n => `<div class="n-card" style="background:${n.color || NOTE_COLORS[0][0]}">
+      <button class="icon-btn pin" title="${n.pinned ? "Unpin" : "Pin to top"}" data-act="notePin" data-id="${n.id}" style="${n.pinned ? "opacity:1" : ""}">${n.pinned ? "📌" : ic("pin", "sm")}</button>
+      <input class="nt" value="${esc(n.title)}" data-act="noteEdit" data-id="${n.id}" data-k="title" style="padding-right:30px">
+      <textarea rows="${Math.min(14, Math.max(3, (n.body || "").split("\n").length + Math.floor((n.body || "").length / 45)))}" data-act="noteEdit" data-id="${n.id}" data-k="body">${esc(n.body)}</textarea>
+      <div class="meta">${n.course ? `<span class="chip" style="background:rgba(255,255,255,.6);color:#333;border:0">${esc(n.course)}</span>` : ""}<span>${fmtDate(new Date(n.at), {month: "short", day: "numeric", year: "numeric"})}</span><div style="flex:1"></div>
+        <div class="color-dots" style="gap:4px">${NOTE_COLORS.map(([c]) => `<button style="background:${c};width:14px;height:14px;border:1px solid rgba(0,0,0,.15)" data-act="noteRecolor" data-id="${n.id}" data-c="${c}"></button>`).join("")}</div>
+        <button class="icon-btn" title="Delete" data-act="noteDel" data-id="${n.id}">${ic("trash", "sm")}</button></div></div>`).join("")}</div>`
+    : `<div class="empty" style="margin-top:16px;padding:40px">${q ? "No notes match your search." : "No notes yet. Your first one goes above ✍️"}</div>`}`;
 };
 
 /* ---------- Academics: Plan & GPA ---------- */
@@ -1345,18 +1675,18 @@ function semCard(s, si, W = new Map(), sup = supersededIds(false)) {
       <button class="icon-btn" title="Move up" data-act="semMove" data-sem="${s.id}" data-d="-1" ${si === 0 ? "disabled" : ""} style="transform:rotate(-90deg)">${ic("chev", "sm")}</button>
       <button class="icon-btn" title="Delete semester" data-act="semDel" data-sem="${s.id}">${ic("trash", "sm")}</button>
     </div>
-    <div class="tw"><table class="t"><thead><tr><th style="text-align:center">Apply</th><th>Course</th><th class="hide-sm">Title</th><th>Credits</th><th>Grade</th><th>Expected</th><th></th></tr></thead><tbody>
+    <div class="tw"><table class="t"><thead><tr><th style="text-align:center">Apply</th><th>Course</th><th class="hide-sm">Title</th><th>Credits</th><th>Grade</th>${s.status === "completed" ? "" : "<th>Expected</th>"}<th></th></tr></thead><tbody>
     ${s.courses.map(c => { const rep = sup.get(c.id); const R = `data-sem="${s.id}" data-id="${c.id}"`; return `<tr${rep ? ' style="opacity:.62"' : ""}>
       <td class="c-apply"><input type="checkbox" ${c.apply ? "checked" : ""} data-act="cField" data-f="apply" ${R} title="Count in GPA"></td>
       <td style="width:190px;white-space:nowrap"><input class="cell code" style="width:${c.transfer || rep ? 112 : 150}px" value="${esc(c.code)}" placeholder="Code" data-act="cField" data-f="code" ${R}>${c.transfer ? `<span class="chip" style="margin-left:4px" title="Transfer credit (not in UK GPA unless you tick Apply)">T</span>` : ""}${rep ? `<span class="chip" style="margin-left:4px" title="Replaced by the repeat grade">Repeated</span>` : ""}</td>
       <td class="hide-sm"><input class="cell" value="${esc(c.title)}" placeholder="Title" data-act="cField" data-f="title" ${R}></td>
       <td class="c-cr"><select class="cell" data-act="cField" data-f="credits" ${R}>${[0, 1, 2, 3, 4, 5, 6].map(n => `<option ${+c.credits === n ? "selected" : ""}>${n}</option>`).join("")}</select></td>
       <td class="c-gr"><select class="cell" data-act="cField" data-f="grade" ${R}>${GRADES.map(gr => `<option value="${gr}" ${c.grade === gr ? "selected" : ""}>${gr || "—"}</option>`).join("")}</select></td>
-      <td class="c-gr">${c.grade ? `<span class="muted small" style="padding-left:8px">—</span>` : `<select class="cell" style="color:var(--muted)" data-act="cField" data-f="expected" ${R}>${EXPECTED.map(gr => `<option value="${gr}" ${c.expected === gr ? "selected" : ""}>${gr || "—"}</option>`).join("")}</select>`}</td>
+      ${s.status === "completed" ? "" : `<td class="c-gr">${c.grade ? `<span class="chip" title="This course has a final grade, so no expected grade is needed">Final ✓</span>` : `<select class="pill ${c.expected ? "set" : ""}" title="What grade do you expect? Used for Projected GPA" data-act="cField" data-f="expected" ${R}>${EXPECTED.map(gr => `<option value="${gr}" ${c.expected === gr ? "selected" : ""}>${gr ? "Expect " + gr : "Expect…"}</option>`).join("")}</select>`}</td>`}
       <td class="c-act">
         <button class="icon-btn" title="${c.syllabus ? "Syllabus uploaded" : "Syllabus, office hours, dates"}" data-act="openCourse" ${R}>${ic(c.syllabus ? "file" : "clock", "sm")}</button>
         <button class="btn sm ghost" data-act="openCourse" ${R}>Details</button>
-        <button class="icon-btn" title="Remove course" data-act="cDel" ${R}>${ic("x", "sm")}</button></td></tr>`; }).join("") || `<tr><td colspan="7"><div class="empty" style="margin:8px 0">No courses yet.</div></td></tr>`}
+        <button class="icon-btn" title="Remove course" data-act="cDel" ${R}>${ic("x", "sm")}</button></td></tr>`; }).join("") || `<tr><td colspan="${s.status === "completed" ? 6 : 7}"><div class="empty" style="margin:8px 0">No courses yet.</div></td></tr>`}
     </tbody></table></div>
     ${warns.length ? `<div style="padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap">${warns.map(w => `<span class="chip warn">${esc(w)}</span>`).join("")}</div>` : ""}
     <div class="sem-foot"><button class="btn sm" data-act="cAdd" data-sem="${s.id}">${ic("plus", "sm")}Add course</button>
@@ -1382,15 +1712,6 @@ VIEWS["academics/courses"] = () => {
 };
 
 /* ---------- Academics: Notes ---------- */
-VIEWS["academics/notes"] = () => `
-  <div class="card"><div class="grid g2" style="grid-template-columns:1fr 2fr">
-    <label class="f"><span>Title</span><input class="input" id="noteTitle" placeholder="e.g. Advisor questions"></label>
-    <label class="f"><span>Course (optional)</span><input class="input" id="noteCourse" placeholder="e.g. MA 114"></label></div>
-    <label class="f" style="margin-top:10px"><span>Note</span><textarea class="input" id="noteBody" rows="4" placeholder="Write anything…"></textarea></label>
-    <div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn primary" data-act="noteAdd">${ic("plus")}Add note</button></div></div>
-  <div class="grid g2" style="margin-top:16px">${S.notes.length ? S.notes.map(n => `<div class="note"><div class="row" style="justify-content:space-between"><b>${esc(n.title)}</b><button class="icon-btn" data-act="noteDel" data-id="${n.id}">${ic("trash", "sm")}</button></div>
-    <div class="tiny muted">${esc(n.course ? n.course + " · " : "")}${fmtDate(new Date(n.at), {month: "short", day: "numeric", year: "numeric"})}</div><div style="white-space:pre-wrap;margin-top:6px">${esc(n.body)}</div></div>`).join("") : `<div class="empty" style="grid-column:1/-1">No notes yet.</div>`}</div>`;
-
 /* ---------- Calendar ---------- */
 let calCursor = startOfDay(new Date()); calCursor.setDate(1);
 function legend() { return `<div class="legend">${Object.values(SRC).map(s => `<span><i class="dot" style="background:${s.color}"></i>${s.label}</span>`).join("")}</div>`; }
@@ -1401,6 +1722,47 @@ function syncBadge() {
   if (!S.ics.events.length) return `<button class="btn sm" data-act="nav" data-main="calendar" data-sub="google">${ic("google", "sm")}Connect Google Calendar</button>`;
   return `<span class="chip ok">${ic("check", "sm")}${esc(S.ics.label || "Google")} · ${S.ics.events.length} events · ${S.ics.lastSync ? "synced " + fmtDate(new Date(S.ics.lastSync), {month: "short", day: "numeric"}) + " " + fmtTime(new Date(S.ics.lastSync)) : ""}</span>${icsUrl() ? `<button class="icon-btn" title="Sync now" data-act="syncNow">${ic("refresh", "sm")}</button>` : ""}`;
 }
+VIEWS["calendar/month"] = () => {
+  const gview = S.settings.calView === "google";
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  const first = new Date(y, m, 1), start = addDays(first, -first.getDay());
+  const end = addDays(start, 41); const evs = eventsBetween(start, new Date(end.getTime() + 864e5 - 1));
+  const byDay = {}; for (const e of evs) { if (e.allDay && e.end - e.start > 864e5) { for (let d = startOfDay(e.start); d < e.end && d <= end; d = addDays(d, 1)) (byDay[ymd(d)] ||= []).push(e); } else (byDay[ymd(e.start)] ||= []).push(e); }
+  const today = new Date();
+  return `<div class="cal-top">
+    ${gview ? `<h2>Google Calendar</h2>` : `<button class="icon-btn" data-act="calNav" data-d="-1">${ic("chevL")}</button><button class="icon-btn" data-act="calNav" data-d="1">${ic("chev")}</button>
+    <h2>${first.toLocaleDateString([], {month: "long", year: "numeric"})}</h2><button class="btn sm" data-act="calToday">Today</button>`}
+    <div style="flex:1"></div>${syncBadge()}
+    <div class="seg"><button class="${gview ? "" : "active"}" data-act="calView" data-v="focus">FOCUS view</button><button class="${gview ? "active" : ""}" data-act="calView" data-v="google">Google view</button></div>
+    ${gview ? "" : `<button class="btn primary sm" data-act="newEvent">${ic("plus", "sm")}Event</button>`}</div>
+  ${gview ? googleEmbed() : `<div class="month">${DOW.map(d => `<div class="dow">${d}</div>`).join("")}
+    ${Array.from({length: 42}, (_, i) => { const d = addDays(start, i), k = ymd(d), list = byDay[k] || [];
+      return `<div class="mday ${d.getMonth() !== m ? "out" : ""} ${sameDay(d, today) ? "today" : ""}" data-act="openDay" data-date="${k}"><div class="dn">${d.getDate()}</div>${list.slice(0, 3).map(evChip).join("")}${list.length > 3 ? `<div class="more">+${list.length - 3} more</div>` : ""}</div>`; }).join("")}</div>${legend()}`}`;
+};
+function googleEmbedSrc() {
+  let id = (S.settings.calendarId || "").trim(); if (!id) return "";
+  if (/calendar\.google\.com\/calendar\/embed/.test(id)) return id;
+  const m = /calendar\/ical\/([^/]+)\//.exec(id); if (m) id = decodeURIComponent(m[1]);
+  const dark = document.documentElement.dataset.theme === "dark";
+  return `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(id)}&ctz=${encodeURIComponent(LOCAL_TZ)}&mode=${S.settings.gview || "MONTH"}&showPrint=0&showTitle=0&showCalendars=0&wkst=1${dark ? "&bgcolor=%23111a2c" : ""}`;
+}
+function googleEmbed() {
+  const src = googleEmbedSrc();
+  if (!src) return `<div class="empty">Add your Google Calendar ID in <a href="#/calendar/google">Calendar → Google Calendar</a>.</div>`;
+  return `<div class="row" style="margin-bottom:10px"><div class="seg">${["WEEK", "MONTH", "AGENDA"].map(v => `<button class="${(S.settings.gview || "MONTH") === v ? "active" : ""}" data-act="gview" data-v="${v}">${v[0] + v.slice(1).toLowerCase()}</button>`).join("")}</div>
+    <span class="small muted">Live from Google. It shows your events when you're signed in to Google in this browser. <a href="https://calendar.google.com/calendar/r" target="_blank" rel="noopener">Open in Google ↗</a></span></div>
+    <iframe class="gframe" src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+}
+VIEWS["calendar/agenda"] = () => {
+  const from = startOfDay(new Date()), days = +(S.ui.agendaDays || 30), to = addDays(from, days);
+  const q = (S.ui.agendaQ || "").toLowerCase();
+  const evs = eventsBetween(from, to).filter(e => !q || (e.title + " " + (e.location || "")).toLowerCase().includes(q));
+  const byDay = {}; evs.forEach(e => (byDay[ymd(e.start < from ? from : e.start)] ||= []).push(e));
+  return `<div class="cal-top"><input class="input" style="max-width:280px" placeholder="Search events…" value="${esc(S.ui.agendaQ || "")}" data-act="agendaQ">
+    <div class="seg">${[7, 30, 90].map(n => `<button class="${days === n ? "active" : ""}" data-act="agendaDays" data-n="${n}">${n} days</button>`).join("")}</div>
+    <div style="flex:1"></div>${syncBadge()}<button class="btn primary sm" data-act="newEvent">${ic("plus", "sm")}Event</button></div>
+  <div class="card">${Object.keys(byDay).length ? Object.entries(byDay).map(([k, l]) => `<div class="day-h">${sameDay(parseYmd(k), new Date()) ? "Today · " : ""}${fmtDate(parseYmd(k), {weekday: "long", month: "long", day: "numeric"})}</div>${agendaRows(l)}`).join("") : `<div class="empty">Nothing in the next ${days} days${q ? " matching “" + esc(q) + "”" : ""}.</div>`}</div>${legend()}`;
+};
 function googleCard() {
   const ok = Cloud.signedIn;
   return `<div class="card" style="border-color:color-mix(in srgb,var(--accent) 35%,var(--line))"><div class="card-h">${ic("google")}<h2>Connect Google (recommended)</h2><div class="sp"></div>${ok ? `<span class="chip ok">${ic("check", "sm")}${esc(Cloud.email || "Connected")}</span>` : ""}</div>
@@ -1756,7 +2118,9 @@ const sem = id => S.semesters.find(s => s.id === id);
 const curGrad = () => S.gradSchools.find(x => x.id === S.ui.gradSel) || [...S.gradSchools].sort((a, b) => (a.rank || 99) - (b.rank || 99))[0];
 const dCourse = () => findCourse(drawerState.sid, drawerState.cid)[1];
 const CLICK = {
-  toggleNav: () => document.body.classList.toggle("nav-open"),
+  toggleNav: () => { if (innerWidth <= 820 || route().main === "home" || document.body.classList.contains("side-collapsed") && !LS.get("focus.sideCollapsed", false)) return document.body.classList.toggle("nav-open");
+    const c = !document.body.classList.contains("side-collapsed"); LS.set("focus.sideCollapsed", c); document.body.classList.toggle("side-collapsed", c); document.body.classList.remove("nav-open"); },
+  closeNav: () => document.body.classList.remove("nav-open"),
   nav: a => go(a.dataset.main, a.dataset.sub),
   navGroup: a => { const id = a.dataset.id, r = route(); if (r.main !== id) { openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); return go(id, NAV.find(n => n.id === id).subs[0][0]); } openGroups.has(id) ? openGroups.delete(id) : openGroups.add(id); LS.set("focus.navOpen", [...openGroups]); renderSide(); },
   close: () => closeLayer(),
@@ -1777,7 +2141,17 @@ const CLICK = {
   kdDel: a => { const c = dCourse(); c.keyDates = c.keyDates.filter(k => k.id !== a.dataset.kd); save(); openCourse(drawerState.sid, drawerState.cid, "dates"); rerender(); },
   viewFile: a => viewFile(a.dataset.fid, a.dataset.name),
   /* notes */
-  noteAdd: () => { const t = $("#noteTitle").value.trim(), b = $("#noteBody").value.trim(); if (!t && !b) return toast("Write something first.", "error"); S.notes.unshift({id: uid(), title: t || "Untitled", body: b, course: $("#noteCourse").value.trim(), at: Date.now()}); save(); rerender(); },
+  noteAdd: () => { const t = $("#noteTitle").value.trim(), b = $("#noteBody").value.trim(); if (!t && !b) return toast("Write something first.", "error"); S.notes.unshift({id: uid(), title: t || "Untitled", body: b, course: $("#noteCourse").value.trim(), at: Date.now(), color: S.ui.noteColor || NOTE_COLORS[0][0], pinned: false}); save(); toast("Note added ✨"); rerender(); },
+  noteColor: a => { S.ui.noteColor = a.dataset.c; $$(".note-compose .color-dots button").forEach(b => b.classList.toggle("on", b === a)); save({silent: true}); },
+  notePin: a => { const n = S.notes.find(x => x.id === a.dataset.id); n.pinned = !n.pinned; save(); rerender(); },
+  noteRecolor: a => { S.notes.find(x => x.id === a.dataset.id).color = a.dataset.c; save(); rerender(); },
+  heroPhoto: () => pick("image/*", async f => { if (!/^image\//.test(f.type)) return toast("Pick an image file.", "error"); if (f.size > 15e6) return toast("That photo is over 15 MB. Pick a smaller one.", "error"); const old = S.profile.heroImage; S.profile.heroImage = await saveFile(f); if (old) delFile(old); save(); toast("Background updated."); rerender(); }),
+  heroPhotoDel: () => { if (S.profile.heroImage) delFile(S.profile.heroImage); S.profile.heroImage = ""; save(); rerender(); },
+  heroEdit: () => heroEditModal(),
+  heroSave: () => { S.profile.gradDate = $("#hgDate").value; S.profile.gradTime = $("#hgTime").value || "10:00"; S.profile.startDate = $("#hgStart").value || "2025-08-25"; save(); closeLayer(); rerender(); },
+  scrollHome: () => $("#homeBelow")?.scrollIntoView({behavior: "smooth"}),
+  bandMode: a => { const st = toolState(); st.five = a.dataset.v === "5"; st.b = st.five ? [1, 0, 0, 2, 0] : [1, 0, 2, 6]; save({silent: true}); rerender(); },
+  ohmClear: () => { Object.assign(toolState(), {V: "", I: "", R: "", P: ""}); save({silent: true}); rerender(); },
   noteDel: a => { S.notes = S.notes.filter(n => n.id !== a.dataset.id); save(); rerender(); },
   /* calendar */
   calNav: a => { calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + +a.dataset.d, 1); rerender(); },
@@ -1870,6 +2244,8 @@ const CLICK = {
   resetAll: () => { if (!confirm("Reset everything to the original plan? This clears your edits.")) return; const keep = {clientId: S.settings.clientId, gcalIds: S.settings.gcalIds}; S = seedState(); Object.assign(S.settings, keep); save(); applyTheme(); rerender(); toast("FOCUS reset."); }
 };
 const CHANGE = {
+  noteEdit: a => { const n = S.notes.find(x => x.id === a.dataset.id); n[a.dataset.k] = a.value; save(); },
+  band: a => { toolState().b[+a.dataset.i] = +a.value; save({silent: true}); rerender(); },
   cField: a => { const s = sem(a.dataset.sem), c = s.courses.find(x => x.id === a.dataset.id), f = a.dataset.f;
     c[f] = f === "apply" ? a.checked : f === "credits" ? +a.value : a.value; save(); rerender(); },
   semName: a => { sem(a.dataset.sem).name = a.value.trim() || "Semester"; save(); rerender(); },
@@ -1901,6 +2277,10 @@ const CHANGE = {
 function curResume() { const sel = S.resumes.find(r => r.id === S.ui.resumeSel) || S.resumes.find(r => r.current) || S.resumes[0]; return sel.current.parsed; }
 function resumeEdited() { const sel = S.resumes.find(r => r.id === S.ui.resumeSel) || S.resumes.find(r => r.current); if (sel?.current) sel.current.edited = Date.now(); save(); }
 const INPUT = {
+  noteQ: a => { S.ui.noteQ = a.value; clearTimeout(INPUT._n); INPUT._n = setTimeout(() => { save({silent: true}); rerender(); }, 250); },
+  circ: a => { toolState()[a.dataset.k] = a.value; save({silent: true}); $("#ohmOut").innerHTML = ohmOut(ohmSolve()); },
+  circRev: a => { toolState().rev = a.value; save({silent: true}); $("#revOut").innerHTML = revOut(valueToBands(parseSI(a.value))); },
+  circList: a => { const st = toolState(); st.list = a.value; save({silent: true}); const l = a.value.split(/[,;\s]+/).map(parseSI).filter(x => isFinite(x) && x > 0); $("#spOut").innerHTML = spOut(l.reduce((x, y) => x + y, 0), l.length ? 1 / l.reduce((x, y) => x + 1 / y, 0) : NaN, l.length); },
   rEdit: a => { const p = curResume(), path = a.dataset.path.split("."), v = a.value;
     if (path[0] === "name") p.name = v; else if (path[0] === "contacts") p.contacts = v.split(/\s*[•|]\s*/).filter(Boolean);
     else if (path[0] === "skills") p.skills = v.split(",").map(x => x.trim()).filter(Boolean);
@@ -1912,6 +2292,8 @@ const INPUT = {
 document.addEventListener("click", e => { const a = e.target.closest("[data-act]"); if (!a) return; const fn = CLICK[a.dataset.act]; if (fn && !(a.tagName === "INPUT" || a.tagName === "SELECT" || a.tagName === "TEXTAREA")) fn(a, e); });
 document.addEventListener("change", e => { const a = e.target.closest("[data-act]"); if (a && CHANGE[a.dataset.act]) CHANGE[a.dataset.act](a, e); });
 document.addEventListener("input", e => { const a = e.target.closest("[data-act]"); if (a && INPUT[a.dataset.act]) INPUT[a.dataset.act](a, e); });
+document.addEventListener("mouseover", e => { const t = e.target.closest?.("[data-tip]"), tip = $("#tip"); if (!t) { tip.style.opacity = 0; return; } tip.innerHTML = t.dataset.tip; tip.style.opacity = 1; });
+document.addEventListener("mousemove", e => { const tip = $("#tip"); if (tip.style.opacity !== "1") return; tip.style.left = Math.min(innerWidth - tip.offsetWidth - 10, e.clientX + 14) + "px"; tip.style.top = (e.clientY + 14) + "px"; });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeLayer(); if (e.key === "Enter" && e.target.matches("input.cell, input.name")) e.target.blur(); });
 
 /* ---------------- boot ---------------- */
